@@ -60,15 +60,19 @@ sendAction(seat: string, action: string, revision: number): Promise<View>
 
 ## Animations (pixel style)
 
-- Chip drop: when a new pot entry appears (diffed against the previous view by index), the chip sprite falls in stepped frames (CSS `steps()`, about 6 frames) onto the landing field. The `from..landing` fills then light up one field per frame. A short 2-frame squash marks the landing.
+- Chip drop: when a new pot entry appears (the highest `order` not seen before; diff by `order`, since chips can also leave the pot), the chip sprite falls in stepped frames (CSS `steps()`, about 6 frames) onto the landing field. The `from..landing` fills then light up one field per frame. A short 2-frame squash marks the landing.
 - Explosion: when a seat's status changes to exploded, 8x8 pixel smoke puffs (dark/purple tokens) rise from the pot centre on stepped keyframes, the pot shakes in a 2px stepped jitter and then dims.
 - Everything uses tokens from styles.css. Animations are off when the user has reduced motion turned on.
 
-## Open questions (blocking)
+## Decisions (answered)
 
-1. Seat ids: are they strings or indices, and how does the browser know its own seat (URL param `?seat=`)?
-2. Exact JSON shapes and an example payload. Specifically: `window` per field (field, money, points, ruby?); bag counts (per colour+value or per chip id?); `chips` contents; `hand` entries and the action ids for picking a hand chip / putting all back; the round card fields.
-3. Fixed action ids for Draw, Stop, Use flask, Card 17, so they can map to keys d/s/f/u?
-4. Updates: should the app poll `getView` (and at what interval), or will the service push changes (websocket/SSE)? The other player acts at the same time.
-5. Error format for a stale revision or an illegal action.
-6. Does a `pot` entry have a stable id or order, so a newly drawn chip can be spotted for the animation?
+1. Seats: string ids ("p1", "p2", more later); `seats` is a list. The seat comes from `?seat=p1`. Hot seat: show the seat in `to_act` and switch between seats; never show one seat's choice to the other.
+2. Shapes:
+   - `window`: `[{field, money, points, ruby}]`, 11 entries. Field 53 can repeat near the end; light each field once.
+   - `seats[].bag`: counts per chip id still in the bag (`{"white_1": 3}`). `chips`: table `[{id, colour, value}]` (19 types, 8 colours) used to look up colour and value.
+   - `hand`: chip ids in slot order. Pick slot i = `play:<i>` (from 0). Put all back = `put_back_draw` / `put_back_stop`.
+   - Round card: `{id, effect, text}`.
+3. Fixed ids and keys: `draw` (d), `stop` (s), `use_flask` (f), `use_card_17` (u). Others (`done`, `buy:<item>`, `ruby_drop`, `refill_flask`, `take_money`, `take_points`, `card_*`, `wait`) are plain buttons. Labels always come from `legal`.
+4. Polling: `getView` about every 500 ms while the viewing seat is not in `to_act` (or a bot is acting). Stop when the game is over. No push.
+5. Errors: 400 `{"error":"illegal_action","legal":[...]}` means show the message and update the buttons from `legal`. 409 `{"error":"stale_revision","revision":n}` means refetch the view.
+6. Pot entries are in placement order with `order` (1 = first chip of the round). New chip = highest unseen `order`. Removed chips (flask, card 17, yellow) vanish without the drop animation.
