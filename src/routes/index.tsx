@@ -1,24 +1,40 @@
 import { createFileRoute } from "@tanstack/react-router";
 
-// No head() here: the home route inherits title/description/og/twitter from
-// __root.tsx, and ships no og:image so serve-time hosting can inject the
-// project's social preview (explicit og:image or latest screenshot).
 export const Route = createFileRoute("/")({
+  head: () => ({
+    meta: [
+      { title: "Quacks" },
+      { name: "description", content: "Quacks – brew your potion, one chip at a time." },
+      { property: "og:title", content: "Quacks" },
+      { property: "og:description", content: "Quacks – brew your potion, one chip at a time." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
+    ],
+  }),
   component: Index,
 });
 
-// IMPORTANT: Replace this placeholder. See ./README.md for routing conventions.
+const chips = ["white", "orange", "green", "blue", "red", "black", "yellow", "purple"] as const;
+const chipClass: Record<(typeof chips)[number], string> = {
+  white: "bg-chip-white",
+  orange: "bg-chip-orange",
+  green: "bg-chip-green",
+  blue: "bg-chip-blue",
+  red: "bg-chip-red",
+  black: "bg-chip-black",
+  yellow: "bg-chip-yellow",
+  purple: "bg-chip-purple",
+};
+
 function Index() {
   return (
-    <div
-      className="flex min-h-screen items-center justify-center"
-      style={{ backgroundColor: "#fcfbf8" }}
-    >
-      <img
-        data-lovable-blank-page-placeholder="REMOVE_THIS"
-        src="https://cdn.gpteng.co/blank-app-v1.svg"
-        alt="Your app will live here!"
-      />
-    </div>
+    <main className="flex min-h-screen flex-col items-center justify-center gap-10 bg-background px-4">
+      <h1 className="text-5xl text-accent text-pixel-shadow md:text-7xl">Quacks</h1>
+      <div className="flex gap-3">
+        {chips.map((c) => (
+          <span key={c} title={c} className={`h-6 w-6 pixel-border ${chipClass[c]}`} />
+        ))}
+      </div>
+    </main>
   );
 }
