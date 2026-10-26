@@ -61,7 +61,7 @@ export function BrewScreen({
                   window={view.window}
                   mode="own"
                   droplet={youSeat.droplet}
-                  ratTailField={youSeat.rat_tail > 0 ? youSeat.start_field : null}
+                  ratTail={youSeat.rat_tail}
                   newOrders={freshOrders.get(youSeat.id)}
                   exploded={freshExplosions.has(youSeat.id)}
                   className="w-full max-w-[420px] shrink-0"

@@ -110,7 +110,7 @@ export interface BackendConfig {
   kind: "mock" | "http";
   game: string;
   baseUrl: string;
-  mock?: "playtest";
+  mock?: "playtest" | "playtest-zero";
 }
 
 export const DEFAULT_API_BASE = "http://localhost:8000";
@@ -119,10 +119,12 @@ export function resolveApiBase(api?: string): string {
   return api || import.meta.env["VITE_QUACKS_API"] || DEFAULT_API_BASE;
 }
 
-export function backendFromSearch(search: { game?: string; api?: string; mock?: boolean | "playtest" | undefined }): BackendConfig {
+export function backendFromSearch(search: { game?: string; api?: string; mock?: boolean | "playtest" | "playtest-zero" | undefined }): BackendConfig {
   const game = search.game ?? "";
   if (game) return { kind: "http", game, baseUrl: resolveApiBase(search.api) };
-  if (search.mock === "playtest") return { kind: "mock", game: "", baseUrl: "", mock: "playtest" };
+  if (search.mock === "playtest" || search.mock === "playtest-zero") {
+    return { kind: "mock", game: "", baseUrl: "", mock: search.mock };
+  }
   return { kind: "mock", game: "", baseUrl: "" };
 }
 
@@ -183,6 +185,7 @@ export async function createGame(baseUrl: string, body: CreateGameBody): Promise
 
 export function getView(backend: BackendConfig, seat: string): Promise<View> {
   if (backend.kind === "mock" && backend.mock === "playtest") return Promise.resolve(playtestView);
+  if (backend.kind === "mock" && backend.mock === "playtest-zero") return Promise.resolve(playtestZeroView);
   if (backend.kind === "mock") return mockGetView(seat);
   return httpGetView(backend, seat);
 }
@@ -194,6 +197,7 @@ export function sendAction(
   revision: number,
 ): Promise<View> {
   if (backend.kind === "mock" && backend.mock === "playtest") return Promise.resolve(playtestView);
+  if (backend.kind === "mock" && backend.mock === "playtest-zero") return Promise.resolve(playtestZeroView);
   if (backend.kind === "mock") return mockSendAction(seat, action, revision);
   return httpSendAction(backend, seat, action, revision);
 }
@@ -453,4 +457,17 @@ const playtestView: View = {
   chips: CHIPS,
   legal: [{ id: "draw", label: "Draw" }, { id: "stop", label: "Stop" }],
   hand: [], card_draw: null, log: { lines: [], events: [] },
+};
+
+// Same as playtest, but p1 has no droplet or rat tail advance; its pot starts at field 1.
+const playtestZeroView: View = {
+  ...playtestView,
+  seats: playtestView.seats.map((seat) =>
+    seat.id === "p1"
+      ? {
+          ...seat, droplet: 0, rat_tail: 0, start_field: 0,
+          pot: seat.pot.map((entry) => ({ ...entry, from: entry.from - 5, landing: entry.landing - 5 })),
+        }
+      : seat,
+  ),
 };
