@@ -5,7 +5,7 @@ export function RoundHeader({ game }: { game: GameInfo }) {
   return (
     <PixelFrame>
       <div className="flex flex-wrap items-center gap-x-6 gap-y-2">
-        <h1 className="font-pixel text-sm text-accent text-pixel-shadow">Quacks</h1>
+        <h1 className="font-pixel text-sm text-accent">Quacks</h1>
         <span className="font-pixel text-[10px] text-foreground">
           Round {game.round}/{game.rounds}
         </span>

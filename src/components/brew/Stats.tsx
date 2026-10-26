@@ -15,7 +15,7 @@ export function Stats({ seat }: { seat: Seat }) {
       <dl className="grid grid-cols-2 gap-x-4 gap-y-1">
         {items.map(([label, value]) => (
           <div key={label} className="flex items-baseline justify-between gap-2">
-            <dt className="text-muted-foreground">{label}</dt>
+            <dt className="whitespace-nowrap text-muted-foreground">{label}</dt>
             <dd className="font-pixel text-[10px] text-foreground">{value}</dd>
           </div>
         ))}
