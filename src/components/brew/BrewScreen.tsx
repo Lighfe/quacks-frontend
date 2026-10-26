@@ -157,6 +157,8 @@ export function BrewScreen({ seat, game, api }: { seat: string; game: string; ap
                   pot={youSeat.pot}
                   window={view.window}
                   mode="own"
+                  droplet={youSeat.droplet}
+                  ratTailField={youSeat.rat_tail > 0 ? youSeat.start_field : null}
                   newOrders={freshOrders.get(youSeat.id)}
                   exploded={freshExplosions.has(youSeat.id)}
                   className="w-full max-w-[420px] shrink-0"

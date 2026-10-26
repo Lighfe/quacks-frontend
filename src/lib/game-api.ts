@@ -215,16 +215,16 @@ function mockWindow(scoringField: number): WindowField[] {
 
 function mockP1Pot(step: number): PotEntry[] {
   const pot: PotEntry[] = [
-    { order: 1, chip: "orange_1", colour: "orange", value: 1, from: 6, landing: 6 },
-    { order: 2, chip: "white_2", colour: "white", value: 2, from: 7, landing: 8 },
-    { order: 3, chip: "green_1", colour: "green", value: 1, from: 9, landing: 9 },
+    { order: 1, chip: "orange_1", colour: "orange", value: 1, from: 2, landing: 2 },
+    { order: 2, chip: "white_2", colour: "white", value: 2, from: 3, landing: 4 },
+    { order: 3, chip: "green_1", colour: "green", value: 1, from: 5, landing: 5 },
   ];
   if (step >= 1)
-    pot.push({ order: 4, chip: "white_3", colour: "white", value: 3, from: 10, landing: 12 });
+    pot.push({ order: 4, chip: "white_3", colour: "white", value: 3, from: 6, landing: 8 });
   if (step >= 2)
-    pot.push({ order: 5, chip: "blue_2", colour: "blue", value: 2, from: 13, landing: 14 });
+    pot.push({ order: 5, chip: "blue_2", colour: "blue", value: 2, from: 9, landing: 10 });
   if (step >= 3)
-    pot.push({ order: 6, chip: "white_3", colour: "white", value: 3, from: 15, landing: 17 });
+    pot.push({ order: 6, chip: "white_3", colour: "white", value: 3, from: 11, landing: 13 });
   return pot;
 }
 
@@ -239,7 +239,7 @@ function mockSeatP1(step: number): Seat {
     flask_full: step < 3,
     white_total: [2, 5, 5, 8][step] ?? 0,
     droplet: 0,
-    start_field: 5,
+    start_field: 1,
     rat_tail: 1,
     bag: {
       white_1: 3,
@@ -266,14 +266,14 @@ function mockSeatP2(): Seat {
     rubies: 1,
     flask_full: true,
     white_total: 3,
-    droplet: 1,
-    start_field: 3,
+    droplet: 2,
+    start_field: 2,
     rat_tail: 0,
     bag: { white_1: 4, white_2: 2, orange_1: 3, blue_1: 1, purple_1: 1 },
     pot: [
-      { order: 1, chip: "orange_1", colour: "orange", value: 1, from: 4, landing: 4 },
-      { order: 2, chip: "blue_1", colour: "blue", value: 1, from: 5, landing: 5 },
-      { order: 3, chip: "white_3", colour: "white", value: 3, from: 6, landing: 8 },
+      { order: 1, chip: "orange_1", colour: "orange", value: 1, from: 3, landing: 3 },
+      { order: 2, chip: "blue_1", colour: "blue", value: 1, from: 4, landing: 4 },
+      { order: 3, chip: "white_3", colour: "white", value: 3, from: 5, landing: 7 },
     ],
   };
 }
@@ -320,7 +320,7 @@ function mockLog(step: number): GameLog {
 function mockGetView(seat: string): Promise<View> {
   const step = mockState.step;
   const you = seat === "p2" ? "p2" : "p1";
-  const scoringField = you === "p1" ? ([10, 13, 15, 18][step] ?? 10) : 9;
+  const scoringField = you === "p1" ? ([6, 9, 11, 14][step] ?? 6) : 9;
   const view: View = {
     game: {
       round: 3,
