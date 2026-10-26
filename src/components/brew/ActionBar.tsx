@@ -2,11 +2,11 @@ import type { LegalAction } from "@/lib/game-api";
 import { PixelFrame } from "./PixelFrame";
 import { cn } from "@/lib/utils";
 
-const DEDICATED: { id: string; key: string }[] = [
-  { id: "draw", key: "d" },
-  { id: "stop", key: "s" },
-  { id: "use_flask", key: "f" },
-  { id: "use_card_17", key: "u" },
+const DEDICATED: { id: string; key: string; fallback: string }[] = [
+  { id: "draw", key: "d", fallback: "Draw" },
+  { id: "stop", key: "s", fallback: "Stop" },
+  { id: "use_flask", key: "f", fallback: "Use flask" },
+  { id: "use_card_17", key: "u", fallback: "Card 17" },
 ];
 
 // These have their own controls in the HandPicker.
@@ -28,7 +28,7 @@ export function ActionBar({
   return (
     <PixelFrame title="Actions">
       <div className="flex flex-wrap gap-2">
-        {DEDICATED.map(({ id, key }) => {
+        {DEDICATED.map(({ id, key, fallback }) => {
           const action = legal.find((a) => a.id === id);
           return (
             <button
@@ -43,7 +43,7 @@ export function ActionBar({
                   : "cursor-not-allowed bg-muted text-muted-foreground opacity-40",
               )}
             >
-              {action?.label ?? id} [{key}]
+              {action?.label ?? fallback} [{key}]
             </button>
           );
         })}
