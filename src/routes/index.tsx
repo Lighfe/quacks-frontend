@@ -4,9 +4,9 @@ import { BrewScreen } from "@/components/brew/BrewScreen";
 
 export const Route = createFileRoute("/")({
   validateSearch: (search: Record<string, unknown>) => ({
-    seat: typeof search.seat === "string" ? search.seat : "",
-    game: typeof search.game === "string" ? search.game : "",
-    api: typeof search.api === "string" ? search.api : "",
+    seat: typeof search["seat"] === "string" ? search["seat"] : "",
+    game: typeof search["game"] === "string" ? search["game"] : "",
+    api: typeof search["api"] === "string" ? search["api"] : "",
   }),
   head: () => ({
     meta: [
