@@ -26,19 +26,21 @@ export function GameScreen({
   seat,
   game,
   api,
+  mock,
   onNewGame,
 }: {
   seat: string;
   game: string;
   api: string;
+  mock?: boolean | "playtest";
   onNewGame: () => void;
 }) {
-  const backend = useMemo(() => backendFromSearch({ game, api }), [game, api]);
+  const backend = useMemo(() => backendFromSearch({ game, api, mock }), [game, api, mock]);
   const [hotSeat, setHotSeat] = useState<string | null>(null);
   const shownSeat = seat || hotSeat || "p1";
   const queryClient = useQueryClient();
   const queryKey = useMemo(
-    () => ["view", backend.kind, backend.game, backend.baseUrl, shownSeat] as const,
+    () => ["view", backend.kind, backend.game, backend.baseUrl, backend.mock, shownSeat] as const,
     [backend, shownSeat],
   );
 
@@ -127,7 +129,7 @@ export function GameScreen({
       const target = e.target as HTMLElement | null;
       if (target && /^(INPUT|SELECT|TEXTAREA)$/.test(target.tagName)) return;
       const action = KEY_ACTIONS[e.key.toLowerCase()];
-      if (action && view?.game.phase === "brew") act(action);
+      if (action && (view?.game.phase === "brew" || view?.game.phase === "brewing")) act(action);
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
@@ -154,7 +156,7 @@ export function GameScreen({
   }
   const phase = view.game.phase;
   if (phase === "game_over") return <EndScreen view={view} onNewGame={onNewGame} />;
-  if (phase === "brew") {
+  if (phase === "brew" || phase === "brewing") {
     return <BrewScreen view={view} onAction={act} pending={pending} error={notice} />;
   }
   return (

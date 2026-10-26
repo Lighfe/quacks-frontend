@@ -21,11 +21,11 @@ describe("spiralLayout", () => {
     expect(f2.y).toBeLessThan(0);
   });
 
-  it("gives every field a unique centre and a 4-point outline", () => {
+  it("gives every field a unique centre and a stepped outline", () => {
     const centres = new Set(spiralLayout.all().map((s) => `${s.center.x},${s.center.y}`));
     expect(centres.size).toBe(54);
     for (const shape of spiralLayout.all()) {
-      expect(shape.outline).toHaveLength(4);
+      expect(shape.outline).toHaveLength(12);
     }
   });
 
