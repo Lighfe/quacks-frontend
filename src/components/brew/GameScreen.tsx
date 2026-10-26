@@ -9,7 +9,7 @@ import {
   sendAction,
   type View,
 } from "@/lib/game-api";
-import { isLegal, newerView, pickShownSeat } from "@/lib/brew-view";
+import { decideHotSeat, isLegal, newerView } from "@/lib/brew-view";
 import { BrewScreen } from "./BrewScreen";
 import { EndScreen } from "./EndScreen";
 import { PhaseScreen } from "./PhaseScreen";
@@ -57,10 +57,30 @@ export function GameScreen({
   });
   const view = viewQuery.data;
 
+  // Hot seat: newest revision seen across all seats; a cached view of the
+  // shown seat that is older is stale (controls off) until refetched.
+  const latestRevision = useRef(-1);
+  const lastSwitchRevision = useRef(-1);
+  if (view && view.game.revision > latestRevision.current) {
+    latestRevision.current = view.game.revision;
+  }
+  const staleView = !seat && !!view && view.game.revision < latestRevision.current;
   useEffect(() => {
     if (seat || !view) return;
-    const target = pickShownSeat(view, shownSeat);
-    if (target !== shownSeat) setHotSeat(target);
+    const { seat: target, stale } = decideHotSeat(
+      view,
+      shownSeat,
+      latestRevision.current,
+      lastSwitchRevision.current,
+    );
+    if (stale) {
+      void viewQuery.refetch();
+      return;
+    }
+    if (target !== shownSeat) {
+      lastSwitchRevision.current = view.game.revision;
+      setHotSeat(target);
+    }
   }, [seat, view, shownSeat]);
 
   const [notice, setNotice] = useState<string | null>(null);
@@ -94,9 +114,9 @@ export function GameScreen({
       pendingRef.current = false;
     },
   });
-  const pending = actionMutation.isPending;
+  const pending = actionMutation.isPending || staleView;
   const act = (id: string) => {
-    if (pendingRef.current || !view || !isLegal(view.legal, id)) return;
+    if (pendingRef.current || staleView || !view || !isLegal(view.legal, id)) return;
     pendingRef.current = true;
     actionMutation.mutate({ action: id, revision: view.game.revision });
   };
