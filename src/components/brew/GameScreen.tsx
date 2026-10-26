@@ -116,7 +116,7 @@ export function GameScreen({
   });
   const pending = actionMutation.isPending;
   const act = (id: string) => {
-    if (pendingRef.current || !view || !isLegal(view.legal, id)) return;
+    if (pendingRef.current || staleView || !view || !isLegal(view.legal, id)) return;
     pendingRef.current = true;
     actionMutation.mutate({ action: id, revision: view.game.revision });
   };
