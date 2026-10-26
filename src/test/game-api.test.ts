@@ -42,16 +42,26 @@ describe("mock backend", () => {
     expect(after.game.revision).toBe(before.game.revision + 1);
   });
 
-  it("offers the flask after a white chip and take money/points when exploded", async () => {
+  it("cycles through flask, blue hand and exploded scenarios", async () => {
+    // The mock is module-level state shared across tests, so walk a full
+    // 4-step cycle from wherever it currently stands.
     const mock2 = backendFromSearch({});
-    const v0 = await getView(mock2, "p1");
-    const v1 = await sendAction(mock2, "p1", "draw", v0.game.revision);
-    expect(v1.legal.map((a) => a.id)).toContain("use_flask");
-    const v2 = await sendAction(mock2, "p1", "draw", v1.game.revision);
-    expect(v2.hand.length).toBeGreaterThan(0);
-    expect(v2.legal.map((a) => a.id)).toContain("play:0");
-    const v3 = await sendAction(mock2, "p1", "play:0", v2.game.revision);
-    expect(v3.seats.find((s) => s.id === "p1")?.status).toBe("exploded");
-    expect(v3.legal.map((a) => a.id).sort()).toEqual(["take_money", "take_points"]);
+    let v = await getView(mock2, "p1");
+    const seenLegal: string[][] = [];
+    let sawHand = false;
+    let sawExploded = false;
+    for (let i = 0; i < 4; i++) {
+      v = await sendAction(mock2, "p1", "draw", v.game.revision);
+      seenLegal.push(v.legal.map((a) => a.id));
+      if (v.hand.length > 0) sawHand = true;
+      if (v.seats.find((s) => s.id === "p1")?.status === "exploded") sawExploded = true;
+    }
+    expect(seenLegal.some((ids) => ids.includes("use_flask"))).toBe(true);
+    expect(seenLegal.some((ids) => ids.includes("play:0"))).toBe(true);
+    expect(seenLegal.some((ids) => ids.includes("take_money") && ids.includes("take_points"))).toBe(
+      true,
+    );
+    expect(sawHand).toBe(true);
+    expect(sawExploded).toBe(true);
   });
 });
