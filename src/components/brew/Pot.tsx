@@ -3,6 +3,7 @@ import type { ChipColour, PotEntry, WindowField } from "@/lib/game-api";
 import { litWindowFields } from "@/lib/brew-view";
 import { spiralLayout, type FieldShape, type PotLayout } from "@/lib/pot-layout";
 import { cn } from "@/lib/utils";
+import { COIN, GEM, PixelIcon, STAR, type PixelGrid } from "./pixel-icons";
 
 const CHIP_FILL: Record<ChipColour, string> = {
   white: "var(--chip-white)",
@@ -53,34 +54,6 @@ interface PotProps {
   className?: string;
 }
 
-// Pixel-art icons: each grid row is a string, one char per pixel, mapped to a colour var.
-type PixelGrid = readonly string[];
-const PALETTE: Record<string, string> = {
-  b: "var(--chip-blue)",
-  w: "var(--foreground)",
-  g: "var(--muted-foreground)",
-  k: "var(--background)",
-  a: "var(--accent)",
-  r: "var(--chip-red)",
-  p: "var(--primary)",
-};
-
-function PixelIcon({
-  grid, x, y, unit, marker, field, ...rest
-}: { grid: PixelGrid; x: number; y: number; unit: number; marker?: string; field?: number; "data-ruby"?: boolean }) {
-  return (
-    <g data-marker={marker} data-field={field} data-ruby={rest["data-ruby"] ? "" : undefined} shapeRendering="crispEdges">
-      {grid.flatMap((row, j) =>
-        Array.from(row).map((c, i) =>
-          PALETTE[c] ? (
-            <rect key={`${i}-${j}`} x={x + i * unit} y={y + j * unit} width={unit} height={unit} fill={PALETTE[c]} />
-          ) : null,
-        ),
-      )}
-    </g>
-  );
-}
-
 const SMALL_DROP: PixelGrid = [".b.", ".b.", "bbb", "wbb", ".b."];
 // Leaning drop with a hooked tip, 6 x 9 px.
 const BIG_DROP: PixelGrid = ["...b..", "...bb.", "..bbb.", ".bbbbb", "bwbbbb", "bwbbbb", "bbbbbb", ".bbbb.", "..bb.."];
@@ -94,8 +67,6 @@ const RAT: PixelGrid = [
   "...g..g.....",
 ];
 const SMALL_TAIL: PixelGrid = ["..aa", ".a..", ".a..", "a..."];
-// Cut gem: narrow flat table, widest girdle row, tapering to a point. 5 x 4 px.
-const GEM: PixelGrid = [".rrr.", "rrwrr", ".rwr.", "..r.."];
 
 // Icon fields from droplet, rat tail count and track length only.
 export function markerFields(droplet: number, ratTail: number, fieldCount: number) {
@@ -239,12 +210,14 @@ export function Pot({
             ) : null}
             {litField ? (
               <g data-window-field={shape.field}>
+                {/* Symbol left, number right of it; gem stays in the upper right corner. */}
+                <PixelIcon grid={COIN} x={shape.center.x - 4.7} y={shape.center.y + (corner ? -4.6 : -2.6)} unit={corner ? 0.3 : 0.4} label="money" />
                 <text
-                  x={corner ? shape.center.x - 4.4 : shape.center.x}
+                  x={shape.center.x + (corner ? -3.0 : -2.4)}
                   y={corner ? shape.center.y - 3.6 : shape.center.y - 1.6}
-                  textAnchor={corner ? "start" : "middle"}
+                  textAnchor="start"
                   dominantBaseline="central"
-                  fontSize={corner ? 2.4 : 3.4}
+                  fontSize={corner ? 2.4 : 3.0}
                   fill="var(--accent)"
                   stroke={corner ? "var(--background)" : undefined}
                   strokeWidth={corner ? 0.5 : undefined}
@@ -253,12 +226,13 @@ export function Pot({
                 >
                   {litField.money}
                 </text>
+                <PixelIcon grid={STAR} x={shape.center.x - 4.7} y={shape.center.y + (corner ? 2.85 : 1.2)} unit={corner ? 0.3 : 0.4} label="points" />
                 <text
-                  x={corner ? shape.center.x + 4.4 : shape.center.x}
+                  x={shape.center.x + (corner ? -3.0 : -2.4)}
                   y={corner ? shape.center.y + 3.6 : shape.center.y + 2.2}
-                  textAnchor={corner ? "end" : "middle"}
+                  textAnchor="start"
                   dominantBaseline="central"
-                  fontSize={corner ? 2.4 : 3.4}
+                  fontSize={corner ? 2.4 : 3.0}
                   fill="var(--foreground)"
                   stroke={corner ? "var(--background)" : undefined}
                   strokeWidth={corner ? 0.5 : undefined}
@@ -268,7 +242,7 @@ export function Pot({
                   {litField.points}
                 </text>
                 {litField.ruby ? (
-                  <PixelIcon data-ruby grid={GEM} x={shape.center.x + 2.4} y={shape.center.y - 4.4} unit={0.5} />
+                  <PixelIcon data-ruby grid={GEM} x={shape.center.x + 2.4} y={shape.center.y - 4.4} unit={0.5} label="rubies" />
                 ) : null}
               </g>
             ) : null}
