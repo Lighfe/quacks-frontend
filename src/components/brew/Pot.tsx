@@ -87,6 +87,29 @@ function pointsAttr(shape: FieldShape): string {
   return shape.outline.map((p) => `${p.x},${p.y}`).join(" ");
 }
 
+// Only interpolates the supplied layout centres; field geometry stays in the layout.
+function trailPath(entry: PotEntry, layout: PotLayout): string {
+  const centers = layout.all()
+    .filter((shape) => shape.field >= entry.from && shape.field <= entry.landing)
+    .map((shape) => shape.center);
+  const first = centers[0];
+  if (!first) return "";
+  let path = `M ${first.x} ${first.y}`;
+  for (let i = 1; i < centers.length; i++) {
+    const previous = centers[i - 1];
+    const next = centers[i];
+    if (!previous || !next) continue;
+    const dx = next.x - previous.x;
+    const dy = next.y - previous.y;
+    const length = Math.hypot(dx, dy) || 1;
+    const wobble = ((entry.order + entry.from + i) % 2 === 0 ? 1 : -1) * 1.2;
+    const cx = (previous.x + next.x) / 2 - (dy / length) * wobble;
+    const cy = (previous.y + next.y) / 2 + (dx / length) * wobble;
+    path += ` Q ${cx} ${cy} ${next.x} ${next.y}`;
+  }
+  return path;
+}
+
 export function Pot({
   pot,
   window = [],
@@ -119,6 +142,27 @@ export function Pot({
       role="img"
       aria-label="Potion pot"
     >
+      <polyline
+        data-pot-path
+        points={layout.all().map(({ center }) => `${center.x},${center.y}`).join(" ")}
+        fill="none"
+        stroke="var(--border)"
+        strokeWidth={11}
+        strokeLinejoin="bevel"
+      />
+      {pot.filter((entry) => entry.from < entry.landing).map((entry) => (
+        <path
+          key={`trail-${entry.order}`}
+          data-trail={entry.order}
+          d={trailPath(entry, layout)}
+          fill="none"
+          stroke={CHIP_FILL[entry.colour]}
+          strokeWidth={7.5}
+          strokeLinejoin="bevel"
+          opacity={0.65}
+          className={newOrders?.has(entry.order) && !reducedMotion ? "chip-drop" : undefined}
+        />
+      ))}
       {layout.all().map((shape) => {
         const entry = fills.get(shape.field);
         const landing = landings.get(shape.field);
@@ -135,16 +179,17 @@ export function Pot({
         return (
           <g
             key={landing ? `${shape.field}-${landing.order}-${landing.chip}` : shape.field}
+            data-landing={landing ? shape.field : undefined}
             className={isNew && !reducedMotion ? "chip-drop" : undefined}
           >
-            <polygon
+            {!entry || landing ? <polygon
               points={pointsAttr(shape)}
               fill={fill}
               stroke={stroke}
               strokeWidth={landing ? 1.6 : 0.6}
                strokeLinejoin="miter"
               opacity={!entry && !litField ? 0.45 : 1}
-            />
+            /> : null}
             {landing ? (
               <text
                 x={shape.center.x}

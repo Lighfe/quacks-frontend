@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { SPIRAL_MARGIN, SPIRAL_PITCH, spiralLayout } from "@/lib/pot-layout";
+import { SPIRAL_MARGIN, SPIRAL_STEP, SPIRAL_TURN_PITCH, spiralLayout } from "@/lib/pot-layout";
 
 describe("spiralLayout", () => {
   it("has exactly 54 fields", () => {
@@ -26,6 +26,16 @@ describe("spiralLayout", () => {
     expect(centres.size).toBe(54);
     for (const shape of spiralLayout.all()) {
       expect(shape.outline).toHaveLength(12);
+      const xs = shape.outline.map((point) => point.x);
+      const ys = shape.outline.map((point) => point.y);
+      expect(Math.max(...xs) - Math.min(...xs)).toBeCloseTo(10);
+      expect(Math.max(...ys) - Math.min(...ys)).toBeCloseTo(10);
+      for (let i = 0; i < shape.outline.length; i++) {
+        const a = shape.outline[i];
+        const b = shape.outline[(i + 1) % shape.outline.length];
+        if (!a || !b) throw new Error("missing outline point");
+        expect(a.x === b.x || a.y === b.y).toBe(true);
+      }
     }
   });
 
@@ -35,35 +45,20 @@ describe("spiralLayout", () => {
 });
 
 describe("spiralLayout board geometry", () => {
-  const cell = (n: number) => {
-    const c = spiralLayout.field(n).center;
-    return { x: Math.round(c.x / SPIRAL_PITCH), y: Math.round(c.y / SPIRAL_PITCH) };
-  };
-
-  it("puts field 0 on the centre cell of the 7x7 block of fields 0-48", () => {
-    const block = Array.from({ length: 49 }, (_, n) => cell(n));
-    const xs = block.map((c) => c.x);
-    const ys = block.map((c) => c.y);
-    expect(Math.max(...xs) - Math.min(...xs)).toBe(6);
-    expect(Math.max(...ys) - Math.min(...ys)).toBe(6);
-    expect(cell(0)).toEqual({ x: Math.min(...xs) + 3, y: Math.min(...ys) + 3 });
-  });
-
-  it("puts field 1 right of field 0 and field 2 above field 1", () => {
-    expect(cell(1)).toEqual({ x: cell(0).x + 1, y: cell(0).y });
-    expect(cell(2)).toEqual({ x: cell(1).x, y: cell(1).y - 1 });
-  });
-
-  it("puts fields 49-53 in one column right of the 7x7 block", () => {
-    const right = Math.max(...Array.from({ length: 49 }, (_, n) => cell(n).x)) + 1;
-    for (let n = 49; n < 54; n++) expect(cell(n).x).toBe(right);
-  });
-
-  it("makes every consecutive pair of fields grid neighbours", () => {
-    for (let n = 0; n < 53; n++) {
-      const a = cell(n);
-      const b = cell(n + 1);
-      expect(Math.abs(a.x - b.x) + Math.abs(a.y - b.y)).toBe(1);
+  it("spaces separate turns at least 1.4 times the largest consecutive step", () => {
+    expect(SPIRAL_STEP).toBe(12);
+    expect(SPIRAL_TURN_PITCH).toBe(19);
+    const distance = (n: number, m: number) => {
+      const a = spiralLayout.field(n).center;
+      const b = spiralLayout.field(m).center;
+      return Math.hypot(a.x - b.x, a.y - b.y);
+    };
+    const largestStep = Math.max(...Array.from({ length: 53 }, (_, n) => distance(n, n + 1)));
+    for (let n = 8; n < 54; n++) {
+      const otherDistances = spiralLayout.all()
+        .filter((shape) => Math.abs(shape.field - n) >= 4)
+        .map((shape) => distance(n, shape.field));
+      expect(Math.min(...otherDistances)).toBeGreaterThanOrEqual(1.4 * largestStep);
     }
   });
 
@@ -74,7 +69,7 @@ describe("spiralLayout board geometry", () => {
     const vb = spiralLayout.viewBox;
     expect(vb.x).toBe(Math.min(...xs) - SPIRAL_MARGIN);
     expect(vb.y).toBe(Math.min(...ys) - SPIRAL_MARGIN);
-    expect(vb.x + vb.w).toBe(Math.max(...xs) + SPIRAL_MARGIN);
-    expect(vb.y + vb.h).toBe(Math.max(...ys) + SPIRAL_MARGIN);
+    expect(vb.x + vb.w).toBeCloseTo(Math.max(...xs) + SPIRAL_MARGIN, 12);
+    expect(vb.y + vb.h).toBeCloseTo(Math.max(...ys) + SPIRAL_MARGIN, 12);
   });
 });
