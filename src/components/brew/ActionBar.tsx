@@ -16,10 +16,12 @@ export function ActionBar({
   legal,
   error,
   onAction,
+  disabled = false,
 }: {
   legal: LegalAction[];
   error: string | null;
   onAction: (id: string) => void;
+  disabled?: boolean;
 }) {
   const dedicatedIds = new Set(DEDICATED.map((d) => d.id));
   const others = legal.filter(
@@ -30,15 +32,16 @@ export function ActionBar({
       <div className="flex flex-wrap gap-2">
         {DEDICATED.map(({ id, key, fallback }) => {
           const action = legal.find((a) => a.id === id);
+          const enabled = !!action && !disabled;
           return (
             <button
               key={id}
               type="button"
-              disabled={!action}
+              disabled={!enabled}
               onClick={() => onAction(id)}
               className={cn(
                 "pixel-border px-3 py-2 font-pixel text-[10px]",
-                action
+                enabled
                   ? "bg-primary text-primary-foreground"
                   : "cursor-not-allowed bg-muted text-muted-foreground opacity-40",
               )}
@@ -51,8 +54,9 @@ export function ActionBar({
           <button
             key={a.id}
             type="button"
+            disabled={disabled}
             onClick={() => onAction(a.id)}
-            className="pixel-border bg-secondary px-3 py-2 font-pixel text-[10px] text-secondary-foreground"
+            className="pixel-border bg-secondary px-3 disabled:cursor-not-allowed disabled:opacity-40 py-2 font-pixel text-[10px] text-secondary-foreground"
           >
             {a.label}
           </button>
