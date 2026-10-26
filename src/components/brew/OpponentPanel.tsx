@@ -49,7 +49,7 @@ export function OpponentPanel({ seat, chips, newOrders, exploded }: OpponentPane
           </DialogContent>
         </Dialog>
         <div className="flex items-center gap-2">
-          <PixelSymbol grid={STAR} unit={3} label="points" />
+          <PixelSymbol grid={STAR} unit={4} label="points" />
           <span className="font-pixel text-[10px] text-foreground">{seat.points}</span>
         </div>
         <Bag bag={seat.bag} chips={chips} />

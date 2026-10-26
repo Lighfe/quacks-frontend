@@ -13,13 +13,13 @@ export function Stats({ seat }: { seat: Seat }) {
       <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
         {items.map((it) => (
           <div key={it.label} className="flex items-center gap-2">
-            <PixelSymbol grid={it.grid} unit={3} label={it.label} />
+            <PixelSymbol grid={it.grid} unit={4} label={it.label} />
             <span className="font-pixel text-[10px] text-foreground">{it.value}</span>
           </div>
         ))}
         <PixelSymbol
           grid={seat.flask_full ? FLASK_FULL : FLASK_EMPTY}
-          unit={3}
+          unit={4}
           label={seat.flask_full ? "flask full" : "flask empty"}
         />
       </div>
