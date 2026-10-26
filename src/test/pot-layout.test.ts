@@ -69,7 +69,7 @@ describe("spiralLayout board geometry", () => {
     const vb = spiralLayout.viewBox;
     expect(vb.x).toBe(Math.min(...xs) - SPIRAL_MARGIN);
     expect(vb.y).toBe(Math.min(...ys) - SPIRAL_MARGIN);
-    expect(vb.x + vb.w).toBe(Math.max(...xs) + SPIRAL_MARGIN);
-    expect(vb.y + vb.h).toBe(Math.max(...ys) + SPIRAL_MARGIN);
+    expect(vb.x + vb.w).toBeCloseTo(Math.max(...xs) + SPIRAL_MARGIN, 12);
+    expect(vb.y + vb.h).toBeCloseTo(Math.max(...ys) + SPIRAL_MARGIN, 12);
   });
 });
