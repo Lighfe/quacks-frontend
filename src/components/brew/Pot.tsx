@@ -84,17 +84,18 @@ function PixelIcon({
 const SMALL_DROP: PixelGrid = [".b.", ".b.", "bbb", "wbb", ".b."];
 // Leaning drop with a hooked tip, 6 x 9 px.
 const BIG_DROP: PixelGrid = ["...b..", "...bb.", "..bbb.", ".bbbbb", "bwbbbb", "bwbbbb", "bbbbbb", ".bbbb.", "..bb.."];
-// Rat facing right: tail, body, ear, eye, nose. 10 x 6 px.
+// Rat facing right with a long curved tail: tail, body, ear, eye, nose. 12 x 6 px.
 const RAT: PixelGrid = [
-  "......g.g.",
-  "....ggggg.",
-  "a..ggggkgr",
-  ".aggggggg.",
-  "..gggggg..",
-  "...g..g...",
+  "......g.g...",
+  "....ggggg...",
+  "aa.ggggkgr..",
+  ".aaggggggg..",
+  "a.gggggg....",
+  "...g..g.....",
 ];
 const SMALL_TAIL: PixelGrid = ["..aa", ".a..", ".a..", "a..."];
-const GEM: PixelGrid = [".rwr.", "rrwrr", "rrrrr", ".rrr.", "..r.."];
+// Cut gem: narrow flat table, widest girdle row, tapering to a point. 5 x 4 px.
+const GEM: PixelGrid = [".rrr.", "rrwrr", ".rwr.", "..r.."];
 
 // Icon fields from droplet, rat tail count and track length only.
 export function markerFields(droplet: number, ratTail: number, fieldCount: number) {
@@ -290,7 +291,7 @@ export function Pot({
             </g>
             {m.rat != null ? (
               <g opacity={0.85}>
-                <PixelIcon grid={RAT} x={at(m.rat).x - 4.5} y={at(m.rat).y - 2.7} unit={0.9} marker="rat" field={m.rat} />
+                <PixelIcon grid={RAT} x={at(m.rat).x - 5.4} y={at(m.rat).y - 2.7} unit={0.9} marker="rat" field={m.rat} />
               </g>
             ) : null}
           </g>
