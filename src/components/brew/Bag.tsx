@@ -47,7 +47,7 @@ export function Bag({
     <div data-testid="bag-sack" aria-label="Bag" className="flex w-full flex-col items-center">
       <SackNeck unit={small ? 3 : 4} />
       <div
-        className={`sack-body -mt-px w-full ${small ? "px-5 py-4" : "min-h-32 px-7 py-6"}`}
+        className={`sack-body -mt-px w-full ${small ? "px-5 py-4" : "px-8 py-8"}`}
       >
         <div className="flex flex-wrap items-center justify-center gap-x-3 gap-y-2">
           {shown.length === 0 ? (
