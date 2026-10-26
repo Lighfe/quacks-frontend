@@ -32,7 +32,7 @@ export function GameScreen({
   seat: string;
   game: string;
   api: string;
-  mock?: boolean | "playtest" | "playtest-zero" | undefined;
+  mock?: boolean | "playtest" | "playtest-zero" | "playtest-small-bag" | undefined;
   onNewGame: () => void;
 }) {
   const backend = useMemo(() => backendFromSearch({ game, api, mock }), [game, api, mock]);

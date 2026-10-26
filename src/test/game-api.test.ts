@@ -130,3 +130,11 @@ describe("static playtest mock", () => {
     expect(afterSequence).not.toEqual(beforeSequence);
   });
 });
+
+describe("static playtest-small-bag mock", () => {
+  it("has p1 bag white_1:4, orange_1:1 and an empty p2 bag", async () => {
+    const view = await getView(backendFromSearch({ mock: "playtest-small-bag" }), "p1");
+    expect(view.seats.find((s) => s.id === "p1")?.bag).toEqual({ white_1: 4, orange_1: 1 });
+    expect(view.seats.find((s) => s.id === "p2")?.bag).toEqual({});
+  });
+});
