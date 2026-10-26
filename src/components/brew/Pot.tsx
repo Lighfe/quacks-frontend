@@ -48,39 +48,64 @@ interface PotProps {
   exploded?: boolean | undefined;
   // Field of the seat's droplet, as sent by the service.
   droplet?: number | undefined;
-  // Seat's start_field when rat_tail > 0, else null (no marker).
-  ratTailField?: number | null | undefined;
+  // Seat's rat_tail count.
+  ratTail?: number | undefined;
   className?: string;
 }
 
-// Pixel-art markers in layout units, drawn in field corners so they stay
-// visible over chips.
-function DropletMarker({ shape }: { shape: FieldShape }) {
-  const x = shape.center.x - 5;
-  const y = shape.center.y + 0.6;
+// Pixel-art icons: each grid row is a string, one char per pixel, mapped to a colour var.
+type PixelGrid = readonly string[];
+const PALETTE: Record<string, string> = {
+  b: "var(--chip-blue)",
+  w: "var(--foreground)",
+  g: "var(--muted-foreground)",
+  k: "var(--background)",
+  a: "var(--accent)",
+  r: "var(--chip-red)",
+  p: "var(--primary)",
+};
+
+function PixelIcon({
+  grid, x, y, unit, marker, field, ...rest
+}: { grid: PixelGrid; x: number; y: number; unit: number; marker?: string; field?: number; "data-ruby"?: boolean }) {
   return (
-    <g data-marker="droplet" shapeRendering="crispEdges">
-      <rect x={x + 1.4} y={y} width={0.9} height={0.9} fill="var(--chip-blue)" />
-      <rect x={x + 0.9} y={y + 0.9} width={1.9} height={0.9} fill="var(--chip-blue)" />
-      <rect x={x + 0.4} y={y + 1.8} width={2.9} height={1.8} fill="var(--chip-blue)" />
-      <rect x={x + 0.9} y={y + 3.6} width={1.9} height={0.8} fill="var(--chip-blue)" />
-      <rect x={x + 0.9} y={y + 1.8} width={0.7} height={0.9} fill="var(--foreground)" />
+    <g data-marker={marker} data-field={field} data-ruby={rest["data-ruby"] ? "" : undefined} shapeRendering="crispEdges">
+      {grid.flatMap((row, j) =>
+        Array.from(row).map((c, i) =>
+          PALETTE[c] ? (
+            <rect key={`${i}-${j}`} x={x + i * unit} y={y + j * unit} width={unit} height={unit} fill={PALETTE[c]} />
+          ) : null,
+        ),
+      )}
     </g>
   );
 }
 
-function RatTailMarker({ shape }: { shape: FieldShape }) {
-  const x = shape.center.x + 1;
-  const y = shape.center.y + 1;
-  return (
-    <g data-marker="rat-tail" shapeRendering="crispEdges" fill="var(--chip-red)">
-      <rect x={x} y={y + 3} width={1} height={1} />
-      <rect x={x + 1} y={y + 2} width={1} height={1} />
-      <rect x={x + 2} y={y + 3} width={1} height={1} />
-      <rect x={x + 3} y={y + 2} width={1} height={1} />
-      <rect x={x + 3} y={y + 1} width={1} height={1} />
-    </g>
-  );
+const SMALL_DROP: PixelGrid = [".b.", ".b.", "bbb", "wbb", ".b."];
+// Leaning drop with a hooked tip, 6 x 9 px.
+const BIG_DROP: PixelGrid = ["...b..", "...bb.", "..bbb.", ".bbbbb", "bwbbbb", "bwbbbb", "bbbbbb", ".bbbb.", "..bb.."];
+// Rat facing right: tail, body, ear, eye, nose. 10 x 6 px.
+const RAT: PixelGrid = [
+  "......g.g.",
+  "....ggggg.",
+  "a..ggggkgr",
+  ".aggggggg.",
+  "..gggggg..",
+  "...g..g...",
+];
+const SMALL_TAIL: PixelGrid = ["..aa", ".a..", ".a..", "a..."];
+const GEM: PixelGrid = [".rwr.", "rrwrr", "rrrrr", ".rrr.", "..r.."];
+
+// Icon fields from droplet, rat tail count and track length only.
+export function markerFields(droplet: number, ratTail: number, fieldCount: number) {
+  const last = fieldCount - 1;
+  const big = Math.min(Math.max(droplet, 0), last);
+  const small: number[] = [];
+  for (let f = 0; f < droplet && f <= last; f++) small.push(f);
+  const rat = ratTail > 0 ? Math.min(droplet + ratTail, last) : null;
+  const tails: number[] = [];
+  for (let f = droplet + 1; f < droplet + ratTail && f <= last; f++) if (f !== rat) tails.push(f);
+  return { big, small, rat, tails };
 }
 
 function pointsAttr(shape: FieldShape): string {
@@ -122,7 +147,7 @@ export function Pot({
   newOrders,
   exploded = false,
   droplet,
-  ratTailField = null,
+  ratTail = 0,
   className,
 }: PotProps) {
   const reducedMotion = useReducedMotion();
@@ -242,28 +267,59 @@ export function Pot({
                   {litField.points}
                 </text>
                 {litField.ruby ? (
-                  <rect
-                    data-ruby
-                    x={shape.center.x + 2.4}
-                    y={shape.center.y - 4.4}
-                    width={2}
-                    height={2}
-                    fill="var(--chip-red)"
-                    stroke={corner ? "var(--background)" : undefined}
-                    strokeWidth={corner ? 0.4 : undefined}
-                  />
+                  <PixelIcon data-ruby grid={GEM} x={shape.center.x + 2.4} y={shape.center.y - 4.4} unit={0.5} />
                 ) : null}
               </g>
             ) : null}
           </g>
         );
       })}
-      {droplet != null && droplet >= 0 && droplet < layout.fieldCount ? (
-        <DropletMarker shape={layout.field(droplet)} />
-      ) : null}
-      {ratTailField != null && ratTailField >= 0 && ratTailField < layout.fieldCount ? (
-        <RatTailMarker shape={layout.field(ratTailField)} />
-      ) : null}
+      {droplet != null ? (() => {
+        const m = markerFields(droplet, ratTail, layout.fieldCount);
+        const at = (f: number) => layout.field(f).center;
+        return (
+          <g data-markers>
+            {m.small.map((f) => (
+              <PixelIcon key={`s${f}`} grid={SMALL_DROP} x={at(f).x - 4.6} y={at(f).y + 0.6} unit={0.8} marker="droplet-small" field={f} />
+            ))}
+            {m.tails.map((f) => (
+              <PixelIcon key={`t${f}`} grid={SMALL_TAIL} x={at(f).x + 1.4} y={at(f).y + 1.2} unit={0.8} marker="rat-tail" field={f} />
+            ))}
+            <g opacity={0.85}>
+              <PixelIcon grid={BIG_DROP} x={at(m.big).x - 3} y={at(m.big).y - 4.5} unit={1} marker="droplet" field={m.big} />
+            </g>
+            {m.rat != null ? (
+              <g opacity={0.85}>
+                <PixelIcon grid={RAT} x={at(m.rat).x - 4.5} y={at(m.rat).y - 2.7} unit={0.9} marker="rat" field={m.rat} />
+              </g>
+            ) : null}
+          </g>
+        );
+      })() : null}
+      {/* Chip values repeated above the icons so landings stay readable. */}
+      {droplet != null
+        ? pot.map((entry) => {
+            const c = layout.field(entry.landing).center;
+            return (
+              <text
+                key={`v${entry.order}`}
+                x={c.x}
+                y={c.y}
+                textAnchor="middle"
+                dominantBaseline="central"
+                fontSize={5}
+                fill={LIGHT_CHIPS.has(entry.colour) ? "var(--primary-foreground)" : "var(--foreground)"}
+                stroke={LIGHT_CHIPS.has(entry.colour) ? undefined : "var(--background)"}
+                strokeWidth={0.6}
+                paintOrder="stroke"
+                style={{ fontFamily: "var(--font-body)" }}
+                aria-hidden
+              >
+                {entry.value}
+              </text>
+            );
+          })
+        : null}
       {exploded && !reducedMotion
         ? SMOKE_OFFSETS.map((o, i) => (
             <rect
