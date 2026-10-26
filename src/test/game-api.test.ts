@@ -65,3 +65,19 @@ describe("mock backend", () => {
     expect(sawExploded).toBe(true);
   });
 });
+
+describe("mock seat markers", () => {
+  it("p1 has droplet 0, rat tail 1, start field 1 and its pot starts at field 2", async () => {
+    const v = await getView(backendFromSearch({}), "p1");
+    const p1 = v.seats.find((s) => s.id === "p1")!;
+    expect([p1.droplet, p1.rat_tail, p1.start_field]).toEqual([0, 1, 1]);
+    expect(p1.pot[0]?.from).toBe(2);
+  });
+
+  it("p2 has droplet 2, rat tail 0, start field 2 and its pot starts at field 3", async () => {
+    const v = await getView(backendFromSearch({}), "p2");
+    const p2 = v.seats.find((s) => s.id === "p2")!;
+    expect([p2.droplet, p2.rat_tail, p2.start_field]).toEqual([2, 0, 2]);
+    expect(p2.pot[0]?.from).toBe(3);
+  });
+});

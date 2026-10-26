@@ -87,6 +87,15 @@ describe("newPotOrders", () => {
     expect(newPotOrders(pot, new Set([1]))).toEqual([3]);
   });
 
+  it("returns only the highest unseen order when several chips are new", () => {
+    const three = [
+      { order: 1, chip: "orange_1", colour: "orange" as const, value: 1, from: 1, landing: 1 },
+      { order: 2, chip: "orange_1", colour: "orange" as const, value: 1, from: 2, landing: 2 },
+      { order: 3, chip: "white_2", colour: "white" as const, value: 2, from: 3, landing: 4 },
+    ];
+    expect(newPotOrders(three, new Set())).toEqual([3]);
+  });
+
   it("returns nothing when all orders were seen, even if a chip left the pot", () => {
     expect(newPotOrders(pot, new Set([1, 2, 3]))).toEqual([]);
   });
