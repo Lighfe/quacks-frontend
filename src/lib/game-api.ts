@@ -114,13 +114,35 @@ export interface BackendConfig {
 
 export const DEFAULT_API_BASE = "http://localhost:8000";
 
+export function resolveApiBase(api?: string): string {
+  return api || import.meta.env["VITE_QUACKS_API"] || DEFAULT_API_BASE;
+}
+
 export function backendFromSearch(search: { game?: string; api?: string }): BackendConfig {
   const game = search.game ?? "";
-  if (game) {
-    const baseUrl = search.api || import.meta.env["VITE_QUACKS_API"] || DEFAULT_API_BASE;
-    return { kind: "http", game, baseUrl };
-  }
+  if (game) return { kind: "http", game, baseUrl: resolveApiBase(search.api) };
   return { kind: "mock", game: "", baseUrl: "" };
+}
+
+export interface CreateGameBody {
+  p1: string;
+  p2: string;
+  rounds: number;
+  seed?: number;
+}
+
+export async function createGame(baseUrl: string, body: CreateGameBody): Promise<string> {
+  const res = await fetch(`${baseUrl}/games`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
+  if (!res.ok) throw new Error(`create failed: HTTP ${res.status}`);
+  const data = (await res.json()) as { game_id?: unknown };
+  if (typeof data.game_id !== "string" && typeof data.game_id !== "number") {
+    throw new Error("create failed: no game_id");
+  }
+  return String(data.game_id);
 }
 
 export function getView(backend: BackendConfig, seat: string): Promise<View> {
