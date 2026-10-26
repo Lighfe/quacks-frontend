@@ -9,7 +9,7 @@ import {
   sendAction,
   type View,
 } from "@/lib/game-api";
-import { isLegal, newerView, pickShownSeat } from "@/lib/brew-view";
+import { decideHotSeat, isLegal, newerView } from "@/lib/brew-view";
 import { BrewScreen } from "./BrewScreen";
 import { EndScreen } from "./EndScreen";
 import { PhaseScreen } from "./PhaseScreen";
@@ -114,7 +114,7 @@ export function GameScreen({
       pendingRef.current = false;
     },
   });
-  const pending = actionMutation.isPending;
+  const pending = actionMutation.isPending || staleView;
   const act = (id: string) => {
     if (pendingRef.current || staleView || !view || !isLegal(view.legal, id)) return;
     pendingRef.current = true;
