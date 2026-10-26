@@ -110,6 +110,7 @@ export interface BackendConfig {
   kind: "mock" | "http";
   game: string;
   baseUrl: string;
+  mock?: "playtest";
 }
 
 export const DEFAULT_API_BASE = "http://localhost:8000";
@@ -118,9 +119,10 @@ export function resolveApiBase(api?: string): string {
   return api || import.meta.env["VITE_QUACKS_API"] || DEFAULT_API_BASE;
 }
 
-export function backendFromSearch(search: { game?: string; api?: string }): BackendConfig {
+export function backendFromSearch(search: { game?: string; api?: string; mock?: boolean | "playtest" | undefined }): BackendConfig {
   const game = search.game ?? "";
   if (game) return { kind: "http", game, baseUrl: resolveApiBase(search.api) };
+  if (search.mock === "playtest") return { kind: "mock", game: "", baseUrl: "", mock: "playtest" };
   return { kind: "mock", game: "", baseUrl: "" };
 }
 
@@ -180,6 +182,7 @@ export async function createGame(baseUrl: string, body: CreateGameBody): Promise
 }
 
 export function getView(backend: BackendConfig, seat: string): Promise<View> {
+  if (backend.kind === "mock" && backend.mock === "playtest") return Promise.resolve(playtestView);
   if (backend.kind === "mock") return mockGetView(seat);
   return httpGetView(backend, seat);
 }
@@ -190,6 +193,7 @@ export function sendAction(
   action: string,
   revision: number,
 ): Promise<View> {
+  if (backend.kind === "mock" && backend.mock === "playtest") return Promise.resolve(playtestView);
   if (backend.kind === "mock") return mockSendAction(seat, action, revision);
   return httpSendAction(backend, seat, action, revision);
 }
@@ -412,3 +416,41 @@ function mockSendAction(seat: string, _action: string, _revision: number): Promi
   mockState.revision += 1;
   return mockGetView(seat);
 }
+
+// Static fixture, independent of the four-step sequence and its revision.
+const playtestView: View = {
+  game: { round: 3, rounds: 9, phase: "brewing", revision: 1, explosion_limit: 7, card: null, winner: null },
+  you: "p1",
+  to_act: ["p1", "p2"],
+  seats: [
+    {
+      id: "p1", kind: "human", status: "brewing", droplet: 3, rat_tail: 2, start_field: 5,
+      points: 12, money: 7, rubies: 2, flask_full: true, white_total: 1,
+      bag: { white_1: 3, white_2: 2, orange_1: 2, green_1: 1, blue_2: 1, red_1: 1 },
+      pot: [
+        { order: 1, chip: "white_1", colour: "white", value: 1, from: 6, landing: 6 },
+        { order: 2, chip: "orange_1", colour: "orange", value: 1, from: 7, landing: 7 },
+        { order: 3, chip: "red_2", colour: "red", value: 2, from: 8, landing: 9 },
+        { order: 4, chip: "red_1", colour: "red", value: 1, from: 10, landing: 10 },
+        { order: 5, chip: "blue_4", colour: "blue", value: 4, from: 11, landing: 14 },
+      ],
+    },
+    mockSeatP2(),
+  ],
+  window: [
+    { field: 15, money: 7, points: 2, ruby: false },
+    { field: 16, money: 8, points: 2, ruby: false },
+    { field: 17, money: 8, points: 3, ruby: true },
+    { field: 18, money: 9, points: 3, ruby: false },
+    { field: 19, money: 9, points: 3, ruby: false },
+    { field: 20, money: 10, points: 4, ruby: false },
+    { field: 21, money: 10, points: 4, ruby: false },
+    { field: 22, money: 11, points: 4, ruby: true },
+    { field: 23, money: 11, points: 5, ruby: false },
+    { field: 24, money: 12, points: 5, ruby: false },
+    { field: 25, money: 12, points: 5, ruby: false },
+  ],
+  chips: CHIPS,
+  legal: [{ id: "draw", label: "Draw" }, { id: "stop", label: "Stop" }],
+  hand: [], card_draw: null, log: { lines: [], events: [] },
+};

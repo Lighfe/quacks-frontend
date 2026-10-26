@@ -66,10 +66,18 @@ function buildSpiralLayout(): PotLayout {
       field,
       center,
       outline: [
-        { x: center.x - h, y: center.y - h },
-        { x: center.x + h, y: center.y - h },
-        { x: center.x + h, y: center.y + h },
-        { x: center.x - h, y: center.y + h },
+        { x: center.x - h + 1, y: center.y - h },
+        { x: center.x + h - 1, y: center.y - h },
+        { x: center.x + h - 1, y: center.y - h + 1 },
+        { x: center.x + h, y: center.y - h + 1 },
+        { x: center.x + h, y: center.y + h - 1 },
+        { x: center.x + h - 1, y: center.y + h - 1 },
+        { x: center.x + h - 1, y: center.y + h },
+        { x: center.x - h + 1, y: center.y + h },
+        { x: center.x - h + 1, y: center.y + h - 1 },
+        { x: center.x - h, y: center.y + h - 1 },
+        { x: center.x - h, y: center.y - h + 1 },
+        { x: center.x - h + 1, y: center.y - h + 1 },
       ],
     };
   });

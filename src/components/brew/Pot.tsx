@@ -115,7 +115,7 @@ export function Pot({
   return (
     <svg
       viewBox={`${vx} ${vy} ${w} ${h}`}
-      className={cn("h-auto w-full", exploded && !reducedMotion && "pot-shake")}
+      className={cn("pot-surface h-auto w-full", className, exploded && !reducedMotion && "pot-shake")}
       role="img"
       aria-label="Potion pot"
     >
@@ -126,8 +126,8 @@ export function Pot({
         const fill = entry
           ? CHIP_FILL[entry.colour]
           : litField
-            ? "var(--muted)"
-            : "var(--secondary)";
+             ? "var(--pot-lit)"
+             : "var(--pot-dark)";
         // With a chip on a lit field, window data moves to small corner labels.
         const corner = entry != null;
         const stroke = landing ? "var(--accent)" : litField ? "var(--ring)" : "var(--border)";
@@ -142,6 +142,7 @@ export function Pot({
               fill={fill}
               stroke={stroke}
               strokeWidth={landing ? 1.6 : 0.6}
+               strokeLinejoin="miter"
               opacity={!entry && !litField ? 0.45 : 1}
             />
             {landing ? (

@@ -45,26 +45,36 @@
 
 :root {
   --radius: 0px;
-  --background: oklch(0.17 0.03 280);
-  --foreground: oklch(0.94 0.03 95);
-  --card: oklch(0.23 0.04 280);
-  --card-foreground: oklch(0.94 0.03 95);
-  --popover: oklch(0.23 0.04 280);
-  --popover-foreground: oklch(0.94 0.03 95);
-  --primary: oklch(0.72 0.19 145);
-  --primary-foreground: oklch(0.15 0.03 280);
-  --secondary: oklch(0.3 0.05 280);
-  --secondary-foreground: oklch(0.94 0.03 95);
-  --muted: oklch(0.27 0.04 280);
-  --muted-foreground: oklch(0.7 0.04 280);
-  --accent: oklch(0.85 0.17 90);
-  --accent-foreground: oklch(0.15 0.03 280);
+  --background: oklch(0.16 0.012 155);
+  --foreground: oklch(0.87 0.025 85);
+  --card: oklch(0.23 0.015 155);
+  --card-foreground: var(--foreground);
+  --popover: var(--card);
+  --popover-foreground: var(--foreground);
+  --primary: oklch(0.65 0.075 155);
+  --primary-foreground: oklch(0.16 0.012 155);
+  --secondary: oklch(0.29 0.016 155);
+  --secondary-foreground: var(--foreground);
+  --muted: oklch(0.27 0.012 155);
+  --muted-foreground: oklch(0.68 0.025 85);
+  --accent: oklch(0.62 0.08 75);
+  --accent-foreground: var(--background);
   --destructive: oklch(0.62 0.22 27);
   --destructive-foreground: oklch(0.97 0 0);
-  --border: oklch(0.08 0.02 280);
-  --input: oklch(0.3 0.05 280);
-  --ring: oklch(0.85 0.17 90);
-  --pixel-shadow: oklch(0.08 0.02 280);
+  --border: oklch(0.12 0.008 155);
+  --input: var(--secondary);
+  --ring: oklch(0.52 0.045 75);
+  --pixel-shadow: oklch(0.09 0.008 155);
+  --frame-edge: oklch(0.38 0.022 85);
+  --pot-dark: oklch(0.21 0.009 155);
+  --pot-lit: oklch(0.31 0.025 75);
+  --brew-glow: oklch(0.43 0.055 75);
+  --pixel-corners: polygon(0 8px, 4px 8px, 4px 4px, 8px 4px, 8px 0,
+    calc(100% - 8px) 0, calc(100% - 8px) 4px, calc(100% - 4px) 4px,
+    calc(100% - 4px) 8px, 100% 8px, 100% calc(100% - 8px),
+    calc(100% - 4px) calc(100% - 8px), calc(100% - 4px) calc(100% - 4px),
+    calc(100% - 8px) calc(100% - 4px), calc(100% - 8px) 100%, 8px 100%,
+    8px calc(100% - 4px), 4px calc(100% - 4px), 4px calc(100% - 8px), 0 calc(100% - 8px));
 
   --chip-white: oklch(0.96 0.01 95);
   --chip-orange: oklch(0.74 0.18 55);
@@ -78,9 +88,21 @@
 
 /* Chunky stepped pixel border */
 @utility pixel-border {
-  border: 4px solid var(--border);
-  box-shadow: 4px 4px 0 0 var(--pixel-shadow);
+  border: 4px solid var(--frame-edge);
+  border-radius: 0;
+  clip-path: var(--pixel-corners);
+  box-shadow: inset 2px 2px 0 var(--frame-edge), inset -2px -2px 0 var(--pixel-shadow);
   image-rendering: pixelated;
+}
+
+/* Static metal surface, restrained warm brew light and pixel-sized grain. */
+.pot-surface {
+  border-radius: 0;
+  clip-path: var(--pixel-corners);
+  background:
+    repeating-conic-gradient(from 90deg, color-mix(in oklab, var(--frame-edge) 12%, transparent) 0 25%, transparent 0 50%) 0 0 / 4px 4px,
+    radial-gradient(ellipse at 45% 50%, color-mix(in oklab, var(--brew-glow) 32%, var(--pixel-shadow)), var(--pixel-shadow) 75%);
+  box-shadow: inset 0 0 0 3px var(--border), inset 0 0 0 5px var(--frame-edge);
 }
 
 @utility pixel-border-inset {

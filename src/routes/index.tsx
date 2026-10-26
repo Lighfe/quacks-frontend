@@ -12,7 +12,7 @@ interface IndexSearch {
   seat?: string | undefined;
   game?: string | undefined;
   api?: string | undefined;
-  mock?: boolean | undefined;
+  mock?: boolean | "playtest" | undefined;
   seed?: number | undefined;
 }
 
@@ -24,7 +24,7 @@ export const Route = createFileRoute("/")({
       seat: str(search["seat"]),
       game: str(search["game"]),
       api: str(search["api"]),
-      mock: str(search["mock"]) === "1" || search["mock"] === true ? true : undefined,
+      mock: search["mock"] === "playtest" ? "playtest" : str(search["mock"]) === "1" || search["mock"] === true ? true : undefined,
       seed:
         seedRaw !== undefined && seedRaw !== "" && Number.isFinite(seedNum) ? seedNum : undefined,
     };
@@ -32,7 +32,9 @@ export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
       { title: "Quacks" },
+      { name: "description", content: "Quacks: pot, ingredients, rounds and points." },
       { property: "og:title", content: "Quacks" },
+      { property: "og:description", content: "Quacks: pot, ingredients, rounds and points." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
     ],
@@ -45,7 +47,7 @@ function Index() {
   const navigate = useNavigate();
   const toStart = () => void navigate({ to: "/", search: api ? { api } : {} });
   if (game || mock) {
-    return <GameScreen key={game} seat={seat} game={game} api={api} onNewGame={toStart} />;
+    return <GameScreen key={`${game}-${mock}`} seat={seat} game={game} api={api} mock={mock} onNewGame={toStart} />;
   }
   return (
     <StartScreen
