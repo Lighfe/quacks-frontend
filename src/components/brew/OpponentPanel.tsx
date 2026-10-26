@@ -28,7 +28,7 @@ export function OpponentPanel({ seat, chips, newOrders, exploded }: OpponentPane
                 pot={seat.pot}
                 mode="other"
                 droplet={seat.droplet}
-                ratTailField={seat.rat_tail > 0 ? seat.start_field : null}
+                ratTail={seat.rat_tail}
                 newOrders={newOrders}
                 exploded={exploded}
               />
@@ -43,7 +43,7 @@ export function OpponentPanel({ seat, chips, newOrders, exploded }: OpponentPane
               pot={seat.pot}
               mode="other"
               droplet={seat.droplet}
-              ratTailField={seat.rat_tail > 0 ? seat.start_field : null}
+              ratTail={seat.rat_tail}
             />
           </DialogContent>
         </Dialog>

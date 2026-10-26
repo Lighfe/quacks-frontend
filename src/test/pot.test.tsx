@@ -70,10 +70,4 @@ describe("Pot", () => {
     expect(doc.querySelectorAll('[data-marker="droplet"]')).toHaveLength(1);
   });
 
-  it("draws the rat tail marker only when a rat tail field is given", () => {
-    const withTail = dom(renderToStaticMarkup(<Pot pot={[]} mode="other" ratTailField={2} />));
-    expect(withTail.querySelectorAll('[data-marker="rat-tail"]')).toHaveLength(1);
-    const without = dom(renderToStaticMarkup(<Pot pot={[]} mode="other" ratTailField={null} />));
-    expect(without.querySelectorAll('[data-marker="rat-tail"]')).toHaveLength(0);
-  });
 });

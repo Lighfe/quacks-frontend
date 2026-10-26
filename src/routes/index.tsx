@@ -12,7 +12,7 @@ interface IndexSearch {
   seat?: string | undefined;
   game?: string | undefined;
   api?: string | undefined;
-  mock?: boolean | "playtest" | undefined;
+  mock?: boolean | "playtest" | "playtest-zero" | undefined;
   seed?: number | undefined;
 }
 
@@ -24,7 +24,7 @@ export const Route = createFileRoute("/")({
       seat: str(search["seat"]),
       game: str(search["game"]),
       api: str(search["api"]),
-      mock: search["mock"] === "playtest" ? "playtest" : str(search["mock"]) === "1" || search["mock"] === true ? true : undefined,
+      mock: search["mock"] === "playtest" ? "playtest" : search["mock"] === "playtest-zero" ? "playtest-zero" : str(search["mock"]) === "1" || search["mock"] === true ? true : undefined,
       seed:
         seedRaw !== undefined && seedRaw !== "" && Number.isFinite(seedNum) ? seedNum : undefined,
     };
