@@ -1,25 +1,28 @@
 import type { Seat } from "@/lib/game-api";
 import { PixelFrame } from "./PixelFrame";
+import { COIN, FLASK_EMPTY, FLASK_FULL, GEM, PixelSymbol, STAR } from "./pixel-icons";
 
 export function Stats({ seat }: { seat: Seat }) {
-  const items: [string, string][] = [
-    ["Points", String(seat.points)],
-    ["Money", String(seat.money)],
-    ["Rubies", String(seat.rubies)],
-    ["Droplet", String(seat.droplet)],
-    ["Rat tail", String(seat.rat_tail)],
-    ["Flask", seat.flask_full ? "full" : "empty"],
+  const items = [
+    { grid: COIN, label: "money", value: seat.money },
+    { grid: STAR, label: "points", value: seat.points },
+    { grid: GEM, label: "rubies", value: seat.rubies },
   ];
   return (
     <PixelFrame title={seat.id}>
-      <dl className="grid grid-cols-2 gap-x-4 gap-y-1">
-        {items.map(([label, value]) => (
-          <div key={label} className="flex items-baseline justify-between gap-2">
-            <dt className="whitespace-nowrap text-muted-foreground">{label}</dt>
-            <dd className="font-pixel text-[10px] text-foreground">{value}</dd>
+      <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+        {items.map((it) => (
+          <div key={it.label} className="flex items-center gap-2">
+            <PixelSymbol grid={it.grid} unit={3} label={it.label} />
+            <span className="font-pixel text-[10px] text-foreground">{it.value}</span>
           </div>
         ))}
-      </dl>
+        <PixelSymbol
+          grid={seat.flask_full ? FLASK_FULL : FLASK_EMPTY}
+          unit={3}
+          label={seat.flask_full ? "flask full" : "flask empty"}
+        />
+      </div>
     </PixelFrame>
   );
 }
