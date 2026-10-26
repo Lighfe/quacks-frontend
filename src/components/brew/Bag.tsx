@@ -44,10 +44,10 @@ export function Bag({
   const byId = new Map(chips.map((c) => [c.id, c]));
   const shown = Object.entries(bag).filter(([id, n]) => n > 0 && byId.has(id));
   return (
-    <div data-testid="bag-sack" aria-label="Bag" className="flex w-full flex-col items-center">
-      <SackNeck unit={small ? 3 : 4} />
+    <div data-testid="bag-sack" aria-label="Bag" className="sack-outline flex w-full flex-col items-center px-1 py-1">
+      <SackNeck unit={small ? 4 : 5} />
       <div
-        className={`sack-body -mt-px w-full ${small ? "px-5 py-4" : "px-8 py-8"}`}
+        className={`sack-body -mt-1 w-full ${small ? "px-6 pb-6 pt-11" : "px-9 pb-9 pt-14"}`}
       >
         <div className="flex flex-wrap items-center justify-center gap-x-3 gap-y-2">
           {shown.length === 0 ? (

@@ -112,21 +112,22 @@
   box-shadow: inset 0 0 0 3px var(--border), inset 0 0 0 5px var(--frame-edge);
 }
 
-/* Brown sack body: stepped pixel bottom, dark outline, cloth grain. */
+/* Brown sack: stepped shoulders and bottom; the outline follows the steps via drop-shadows. */
+.sack-outline {
+  filter: drop-shadow(4px 0 0 var(--sack-outline)) drop-shadow(-4px 0 0 var(--sack-outline))
+    drop-shadow(0 4px 0 var(--sack-outline)) drop-shadow(0 -4px 0 var(--sack-outline));
+}
 .sack-body {
-  --sack-steps: polygon(12px 0, calc(100% - 12px) 0, calc(100% - 12px) 4px, calc(100% - 4px) 4px,
-    calc(100% - 4px) 12px, 100% 12px, 100% calc(100% - 24px), calc(100% - 4px) calc(100% - 24px),
-    calc(100% - 4px) calc(100% - 12px), calc(100% - 12px) calc(100% - 12px), calc(100% - 12px) calc(100% - 4px),
-    calc(100% - 24px) calc(100% - 4px), calc(100% - 24px) 100%, 24px 100%, 24px calc(100% - 4px),
-    12px calc(100% - 4px), 12px calc(100% - 12px), 4px calc(100% - 12px), 4px calc(100% - 24px),
-    0 calc(100% - 24px), 0 12px, 4px 12px, 4px 4px, 12px 4px);
-  clip-path: var(--sack-steps);
+  clip-path: polygon(30% 0, 70% 0, 70% 8px, 80% 8px, 80% 16px, 88% 16px, 88% 24px, calc(100% - 8px) 24px,
+    calc(100% - 8px) 36px, 100% 36px, 100% calc(100% - 20px), calc(100% - 8px) calc(100% - 20px),
+    calc(100% - 8px) calc(100% - 8px), calc(100% - 20px) calc(100% - 8px), calc(100% - 20px) 100%,
+    20px 100%, 20px calc(100% - 8px), 8px calc(100% - 8px), 8px calc(100% - 20px), 0 calc(100% - 20px),
+    0 36px, 8px 36px, 8px 24px, 12% 24px, 12% 16px, 20% 16px, 20% 8px, 30% 8px);
   background:
     repeating-conic-gradient(from 90deg, color-mix(in oklab, var(--sack-shade) 45%, transparent) 0 25%, transparent 0 50%) 0 0 / 4px 4px,
     var(--sack-fill);
-  filter: drop-shadow(0 0 0 var(--sack-outline));
-  box-shadow: inset 0 0 0 4px var(--sack-outline), inset 8px 0 0 0 color-mix(in oklab, var(--sack-cord) 25%, transparent),
-    inset -10px -8px 0 0 var(--sack-shade);
+  box-shadow: inset 12px 0 0 0 color-mix(in oklab, var(--sack-cord) 18%, transparent),
+    inset -14px -12px 0 0 var(--sack-shade);
 }
 
 @utility pixel-border-inset {
