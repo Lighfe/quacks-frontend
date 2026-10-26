@@ -34,7 +34,7 @@ describe("createGame failure messages", () => {
     const msg = await failMessage();
     expect(msg).toContain(BASE);
     expect(msg).toContain("422");
-    expect(msg).not.toContain("loc");
+    expect(msg).not.toContain("rounds");
     expect(msg).not.toContain("{");
   });
 
