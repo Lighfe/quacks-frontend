@@ -81,3 +81,52 @@ describe("mock seat markers", () => {
     expect(p2.pot[0]?.from).toBe(3);
   });
 });
+
+describe("static playtest mock", () => {
+  const backend = backendFromSearch({ mock: "playtest" });
+
+  it("contains the requested game and p1 counters and markers", async () => {
+    const view = await getView(backend, "p1");
+    expect(view.you).toBe("p1");
+    expect(view.game.phase).toBe("brewing");
+    expect(view.to_act).toContain("p1");
+    expect(view.legal.map((a) => a.id)).toEqual(["draw", "stop"]);
+    expect(view.seats.find((s) => s.id === "p1")).toMatchObject({
+      status: "brewing", droplet: 3, rat_tail: 2, start_field: 5,
+      points: 12, money: 7, rubies: 2, flask_full: true,
+    });
+  });
+
+  it("contains the five placed chips in the supplied order", async () => {
+    const view = await getView(backend, "p1");
+    expect(view.seats.find((s) => s.id === "p1")?.pot).toEqual([
+      { order: 1, chip: "white_1", colour: "white", value: 1, from: 6, landing: 6 },
+      { order: 2, chip: "orange_1", colour: "orange", value: 1, from: 7, landing: 7 },
+      { order: 3, chip: "red_2", colour: "red", value: 2, from: 8, landing: 9 },
+      { order: 4, chip: "red_1", colour: "red", value: 1, from: 10, landing: 10 },
+      { order: 5, chip: "blue_4", colour: "blue", value: 4, from: 11, landing: 14 },
+    ]);
+  });
+
+  it("contains eleven annotated fields 15–25, bag kinds and a placed opponent pot", async () => {
+    const view = await getView(backend, "p1");
+    expect(view.window.map((f) => f.field)).toEqual([15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25]);
+    expect(view.window.every((f) => Number.isFinite(f.money) && Number.isFinite(f.points))).toBe(true);
+    expect(view.window.some((f) => f.ruby)).toBe(true);
+    expect(Object.keys(view.seats.find((s) => s.id === "p1")?.bag ?? {}).length).toBeGreaterThanOrEqual(5);
+    expect(view.seats.find((s) => s.id === "p2")?.pot.length).toBeGreaterThanOrEqual(2);
+  });
+
+  it("returns the same view for every action without advancing the sequence", async () => {
+    const sequence = backendFromSearch({ mock: true });
+    const beforeSequence = await getView(sequence, "p1");
+    const before = await getView(backend, "p1");
+    for (const action of ["draw", "stop", "anything"]) {
+      expect(await sendAction(backend, "p1", action, before.game.revision)).toBe(before);
+    }
+    expect(await getView(sequence, "p1")).toEqual(beforeSequence);
+    const afterSequence = await sendAction(sequence, "p1", "draw", beforeSequence.game.revision);
+    expect(afterSequence.game.revision).toBe(beforeSequence.game.revision + 1);
+    expect(afterSequence).not.toEqual(beforeSequence);
+  });
+});
