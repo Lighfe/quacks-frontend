@@ -79,7 +79,7 @@ export function Pot({
   return (
     <svg
       viewBox={`${-w / 2} ${-h / 2} ${w} ${h}`}
-      className={cn("h-auto w-full", exploded && "pot-shake")}
+      className={cn("h-auto w-full", exploded && !reducedMotion && "pot-shake")}
       role="img"
       aria-label="Potion pot"
     >
