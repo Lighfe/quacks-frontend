@@ -7,6 +7,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Bag } from "./Bag";
+import { PixelSymbol, STAR } from "./pixel-icons";
 import { PixelFrame } from "./PixelFrame";
 import { Pot } from "./Pot";
 
@@ -47,8 +48,8 @@ export function OpponentPanel({ seat, chips, newOrders, exploded }: OpponentPane
             />
           </DialogContent>
         </Dialog>
-        <div className="flex items-baseline justify-between gap-2">
-          <span className="text-muted-foreground">Points</span>
+        <div className="flex items-center gap-2">
+          <PixelSymbol grid={STAR} unit={3} label="points" />
           <span className="font-pixel text-[10px] text-foreground">{seat.points}</span>
         </div>
         <Bag bag={seat.bag} chips={chips} />
