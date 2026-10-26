@@ -131,16 +131,50 @@ export interface CreateGameBody {
   seed?: number;
 }
 
+export class CreateGameError extends Error {
+  baseUrl: string;
+  status: number | undefined;
+  detail: string | undefined;
+  constructor(baseUrl: string, status?: number, detail?: string) {
+    super(status === undefined ? "create failed: not reachable" : `create failed: HTTP ${status}`);
+    this.name = "CreateGameError";
+    this.baseUrl = baseUrl;
+    this.status = status;
+    this.detail = detail;
+  }
+}
+
+export function formatCreateGameError(err: unknown): string {
+  if (!(err instanceof CreateGameError)) return "The game could not be started.";
+  if (err.status === undefined) return `Service at ${err.baseUrl} is not reachable.`;
+  const base = `Service at ${err.baseUrl} answered HTTP ${err.status}`;
+  return err.detail ? `${base}: ${err.detail}` : `${base}.`;
+}
+
 export async function createGame(baseUrl: string, body: CreateGameBody): Promise<string> {
-  const res = await fetch(`${baseUrl}/games`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(body),
-  });
-  if (!res.ok) throw new Error(`create failed: HTTP ${res.status}`);
+  let res: Response;
+  try {
+    res = await fetch(`${baseUrl}/games`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    });
+  } catch {
+    throw new CreateGameError(baseUrl);
+  }
+  if (!res.ok) {
+    let detail: string | undefined;
+    try {
+      const data = (await res.json()) as { detail?: unknown } | null;
+      if (data && typeof data.detail === "string") detail = data.detail;
+    } catch {
+      detail = undefined;
+    }
+    throw new CreateGameError(baseUrl, res.status, detail);
+  }
   const data = (await res.json()) as { game_id?: unknown };
   if (typeof data.game_id !== "string" && typeof data.game_id !== "number") {
-    throw new Error("create failed: no game_id");
+    throw new CreateGameError(baseUrl, res.status, "no game_id");
   }
   return String(data.game_id);
 }

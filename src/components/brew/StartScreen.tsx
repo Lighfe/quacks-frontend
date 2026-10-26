@@ -1,6 +1,6 @@
 import { useState } from "react";
 
-import { createGame, resolveApiBase } from "@/lib/game-api";
+import { createGame, formatCreateGameError, resolveApiBase } from "@/lib/game-api";
 import { SEAT_KINDS, buildCreateBody, gameSearchAfterCreate, type GameSearch } from "@/lib/start-game";
 import { PixelFrame } from "./PixelFrame";
 
@@ -32,8 +32,8 @@ export function StartScreen({
     try {
       const gameId = await createGame(resolveApiBase(api), body);
       onStarted(gameSearchAfterCreate(p1, p2, gameId, api || undefined));
-    } catch {
-      setError("The game could not be started.");
+    } catch (err) {
+      setError(formatCreateGameError(err));
     } finally {
       setBusy(false);
     }
