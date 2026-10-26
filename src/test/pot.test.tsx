@@ -9,6 +9,30 @@ function dom(markup: string): Document {
 }
 
 describe("Pot", () => {
+  const playtestPot: PotEntry[] = [
+    { order: 1, chip: "white_1", colour: "white", value: 1, from: 6, landing: 6 },
+    { order: 2, chip: "orange_1", colour: "orange", value: 1, from: 7, landing: 7 },
+    { order: 3, chip: "red_2", colour: "red", value: 2, from: 8, landing: 9 },
+    { order: 4, chip: "red_1", colour: "red", value: 1, from: 10, landing: 10 },
+    { order: 5, chip: "blue_4", colour: "blue", value: 4, from: 11, landing: 14 },
+  ];
+
+  it("joins only multi-field moves into deterministic trails and preserves every landing", () => {
+    const markup = renderToStaticMarkup(<Pot pot={playtestPot} mode="own" />);
+    const doc = dom(markup);
+    expect(Array.from(doc.querySelectorAll("[data-trail]")).map((trail) => trail.getAttribute("data-trail")))
+      .toEqual(["3", "5"]);
+    expect(renderToStaticMarkup(<Pot pot={playtestPot} mode="own" />)).toBe(markup);
+    for (const entry of playtestPot) {
+      const tile = doc.querySelector(`[data-landing="${entry.landing}"]`);
+      expect(tile?.querySelector("text")?.textContent).toBe(String(entry.value));
+      expect(tile?.querySelector("polygon")?.getAttribute("stroke")).toBe("var(--accent)");
+    }
+    // 54 fields minus the four trail-only fields (8, 11, 12, 13).
+    expect(doc.querySelectorAll("polygon")).toHaveLength(50);
+    expect(doc.querySelector("[data-pot-path]")).not.toBeNull();
+  });
+
   it("shows money, points and ruby on field 53 when a chip landed there and the window repeats 53", () => {
     const pot: PotEntry[] = [
       { order: 1, chip: "orange_6", colour: "orange", value: 6, from: 48, landing: 53 },

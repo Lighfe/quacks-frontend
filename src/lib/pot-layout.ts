@@ -24,43 +24,42 @@ export interface PotLayout {
 
 const FIELD_COUNT = 54;
 const CELL = 10;
-export const SPIRAL_PITCH = 12;
+export const SPIRAL_STEP = 12;
+export const SPIRAL_TURN_PITCH = 19;
 export const SPIRAL_MARGIN = 4;
 
-// Square snake spiral: field 0 in the centre, then counter-clockwise outwards
-// (east, north, west, south in screen coordinates) with segment lengths
-// 1, 1, 2, 2, 3, 3, ...
-function spiralGridPositions(count: number): Point[] {
-  const positions: Point[] = [{ x: 0, y: 0 }];
-  const dirs: Point[] = [
-    { x: 1, y: 0 },
-    { x: 0, y: -1 },
-    { x: -1, y: 0 },
-    { x: 0, y: 1 },
-  ];
-  let x = 0;
-  let y = 0;
-  let dirIndex = 0;
-  let segment = 1;
-  while (positions.length < count) {
-    for (let rep = 0; rep < 2 && positions.length < count; rep++) {
-      const dir = dirs[dirIndex % 4] ?? { x: 1, y: 0 };
-      for (let i = 0; i < segment && positions.length < count; i++) {
-        x += dir.x;
-        y += dir.y;
-        positions.push({ x, y });
-      }
-      dirIndex++;
+// Equal arc-length samples of r = b * theta. Rotate the first step east;
+// increasing theta winds counter-clockwise in screen coordinates.
+function spiralPositions(count: number): Point[] {
+  const b = SPIRAL_TURN_PITCH / (2 * Math.PI);
+  const arcLength = (theta: number) =>
+    (b / 2) * (theta * Math.sqrt(1 + theta * theta) + Math.asinh(theta));
+  const angles = Array.from({ length: count }, (_, field) => {
+    if (field === 0) return 0;
+    const target = field * SPIRAL_STEP;
+    let low = 0;
+    let high = Math.sqrt((2 * target) / b) + 1;
+    for (let iteration = 0; iteration < 60; iteration++) {
+      const mid = (low + high) / 2;
+      if (arcLength(mid) < target) low = mid;
+      else high = mid;
     }
-    segment++;
-  }
-  return positions;
+    return (low + high) / 2;
+  });
+  const rotation = angles[1] ?? 0;
+  return angles.map((theta, field) => {
+    if (field === 0) return { x: 0, y: 0 };
+    const radius = b * theta;
+    return {
+      x: radius * Math.cos(theta - rotation),
+      y: field === 1 ? 0 : -radius * Math.sin(theta - rotation),
+    };
+  });
 }
 
 function buildSpiralLayout(): PotLayout {
-  const grid = spiralGridPositions(FIELD_COUNT);
-  const shapes: FieldShape[] = grid.map((g, field) => {
-    const center = { x: g.x * SPIRAL_PITCH, y: g.y * SPIRAL_PITCH };
+  const positions = spiralPositions(FIELD_COUNT);
+  const shapes: FieldShape[] = positions.map((center, field) => {
     const h = CELL / 2;
     return {
       field,
