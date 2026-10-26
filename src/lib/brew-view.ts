@@ -42,3 +42,18 @@ export function newerView(current: View | undefined, next: View): View {
   if (current && next.game.revision < current.game.revision) return current;
   return next;
 }
+
+// Hot seat decision. Never acts on a view older than the newest revision seen
+// (any seat), keeps the shown seat while it is to act, and switches at most
+// once per revision. Returns the seat to show and whether the view is stale.
+export function decideHotSeat(
+  view: View,
+  current: string,
+  latestRevision: number,
+  lastSwitchRevision: number,
+): { seat: string; stale: boolean } {
+  if (view.game.revision < latestRevision) return { seat: current, stale: true };
+  if (view.to_act.includes(current)) return { seat: current, stale: false };
+  if (view.game.revision <= lastSwitchRevision) return { seat: current, stale: false };
+  return { seat: pickShownSeat(view, current), stale: false };
+}
