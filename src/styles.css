@@ -41,6 +41,7 @@
   --color-chip-black: var(--chip-black);
   --color-chip-yellow: var(--chip-yellow);
   --color-chip-purple: var(--chip-purple);
+  --color-sack-ink: var(--sack-ink);
 }
 
 :root {
@@ -84,6 +85,12 @@
   --chip-black: oklch(0.2 0.01 280);
   --chip-yellow: oklch(0.88 0.17 95);
   --chip-purple: oklch(0.55 0.2 305);
+
+  --sack-fill: oklch(0.42 0.035 60);
+  --sack-shade: oklch(0.34 0.03 55);
+  --sack-outline: oklch(0.2 0.015 50);
+  --sack-cord: oklch(0.62 0.04 80);
+  --sack-ink: oklch(0.9 0.02 85);
 }
 
 /* Chunky stepped pixel border */
@@ -103,6 +110,23 @@
     repeating-conic-gradient(from 90deg, color-mix(in oklab, var(--frame-edge) 12%, transparent) 0 25%, transparent 0 50%) 0 0 / 4px 4px,
     radial-gradient(ellipse at 45% 50%, color-mix(in oklab, var(--brew-glow) 32%, var(--pixel-shadow)), var(--pixel-shadow) 75%);
   box-shadow: inset 0 0 0 3px var(--border), inset 0 0 0 5px var(--frame-edge);
+}
+
+/* Brown sack body: stepped pixel bottom, dark outline, cloth grain. */
+.sack-body {
+  --sack-steps: polygon(12px 0, calc(100% - 12px) 0, calc(100% - 12px) 4px, calc(100% - 4px) 4px,
+    calc(100% - 4px) 12px, 100% 12px, 100% calc(100% - 24px), calc(100% - 4px) calc(100% - 24px),
+    calc(100% - 4px) calc(100% - 12px), calc(100% - 12px) calc(100% - 12px), calc(100% - 12px) calc(100% - 4px),
+    calc(100% - 24px) calc(100% - 4px), calc(100% - 24px) 100%, 24px 100%, 24px calc(100% - 4px),
+    12px calc(100% - 4px), 12px calc(100% - 12px), 4px calc(100% - 12px), 4px calc(100% - 24px),
+    0 calc(100% - 24px), 0 12px, 4px 12px, 4px 4px, 12px 4px);
+  clip-path: var(--sack-steps);
+  background:
+    repeating-conic-gradient(from 90deg, color-mix(in oklab, var(--sack-shade) 45%, transparent) 0 25%, transparent 0 50%) 0 0 / 4px 4px,
+    var(--sack-fill);
+  filter: drop-shadow(0 0 0 var(--sack-outline));
+  box-shadow: inset 0 0 0 4px var(--sack-outline), inset 8px 0 0 0 color-mix(in oklab, var(--sack-cord) 25%, transparent),
+    inset -10px -8px 0 0 var(--sack-shade);
 }
 
 @utility pixel-border-inset {

@@ -52,7 +52,7 @@ export function OpponentPanel({ seat, chips, newOrders, exploded }: OpponentPane
           <PixelSymbol grid={STAR} unit={4} label="points" />
           <span className="font-pixel text-[10px] text-foreground">{seat.points}</span>
         </div>
-        <Bag bag={seat.bag} chips={chips} />
+        <Bag bag={seat.bag} chips={chips} small />
       </div>
     </PixelFrame>
   );

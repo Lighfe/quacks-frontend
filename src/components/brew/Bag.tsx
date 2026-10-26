@@ -42,8 +42,7 @@ export function Bag({
   small?: boolean;
 }) {
   const byId = new Map(chips.map((c) => [c.id, c]));
-  const entries = Object.entries(bag).filter(([, n]) => n > 0 && byId.has(n ? "" + "" : "") === false ? byId.has(Object.keys(bag).find(() => false) ?? "") || true : false);
-  const shown = entries.filter(([id]) => byId.has(id));
+  const shown = Object.entries(bag).filter(([id, n]) => n > 0 && byId.has(id));
   return (
     <div data-testid="bag-sack" aria-label="Bag" className="flex w-full flex-col items-center">
       <SackNeck unit={small ? 3 : 4} />
