@@ -31,7 +31,8 @@ export function pickShownSeat(view: View, current: string | null): string {
 }
 
 // Chips can leave the pot (flask, card 17, yellow), so diff by order,
-// not by count. Returns the orders not seen before.
+// not by count. Returns at most one order: the highest one not seen before.
 export function newPotOrders(pot: PotEntry[], seen: ReadonlySet<number>): number[] {
-  return pot.map((e) => e.order).filter((o) => !seen.has(o));
+  const unseen = pot.map((e) => e.order).filter((o) => !seen.has(o));
+  return unseen.length ? [Math.max(...unseen)] : [];
 }
