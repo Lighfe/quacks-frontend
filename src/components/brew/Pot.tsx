@@ -95,7 +95,7 @@ export function Pot({
         const stroke = landing ? "var(--accent)" : litField ? "var(--ring)" : "var(--border)";
         const isNew = landing != null && newOrders?.has(landing.order);
         return (
-          <g key={shape.field} className={isNew ? "chip-drop" : undefined}>
+          <g key={shape.field} className={isNew && !reducedMotion ? "chip-drop" : undefined}>
             <polygon
               points={pointsAttr(shape)}
               fill={fill}
