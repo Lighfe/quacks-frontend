@@ -24,21 +24,27 @@ export function OpponentPanel({ seat, chips, newOrders, exploded }: OpponentPane
         <Dialog>
           <DialogTrigger asChild>
             <button type="button" className="block w-full" aria-label={`Enlarge pot of ${seat.id}`}>
-              <Pot pot={seat.pot} mode="other"
-              droplet={seat.droplet}
-              ratTailField={seat.rat_tail > 0 ? seat.start_field : null} newOrders={newOrders} exploded={exploded} />
+              <Pot
+                pot={seat.pot}
+                mode="other"
+                droplet={seat.droplet}
+                ratTailField={seat.rat_tail > 0 ? seat.start_field : null}
+                newOrders={newOrders}
+                exploded={exploded}
+              />
             </button>
           </DialogTrigger>
           <DialogContent className="max-w-2xl bg-card">
             <DialogHeader>
               <DialogTitle className="font-pixel text-xs">{seat.id}</DialogTitle>
             </DialogHeader>
-            {/* Still mode="other"
+            {/* Still mode="other": no window, even enlarged. */}
+            <Pot
+              pot={seat.pot}
+              mode="other"
               droplet={seat.droplet}
-              ratTailField={seat.rat_tail > 0 ? seat.start_field : null}: no window, even enlarged. */}
-            <Pot pot={seat.pot} mode="other"
-              droplet={seat.droplet}
-              ratTailField={seat.rat_tail > 0 ? seat.start_field : null} />
+              ratTailField={seat.rat_tail > 0 ? seat.start_field : null}
+            />
           </DialogContent>
         </Dialog>
         <div className="flex items-baseline justify-between gap-2">
