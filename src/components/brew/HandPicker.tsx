@@ -10,9 +10,10 @@ interface HandPickerProps {
   chips: ChipType[];
   legal: LegalAction[];
   onAction: (id: string) => void;
+  disabled?: boolean;
 }
 
-export function HandPicker({ hand, cardDraw, chips, legal, onAction }: HandPickerProps) {
+export function HandPicker({ hand, cardDraw, chips, legal, onAction, disabled = false }: HandPickerProps) {
   if (hand.length === 0 && !(cardDraw && cardDraw.length > 0)) return null;
   const byId = new Map(chips.map((c) => [c.id, c]));
   const putBacks = legal.filter((a) => a.id === "put_back_draw" || a.id === "put_back_stop");
@@ -23,7 +24,7 @@ export function HandPicker({ hand, cardDraw, chips, legal, onAction }: HandPicke
           const chip = byId.get(id);
           if (!chip) return null;
           const action = `play:${i}`;
-          const enabled = isLegal(legal, action);
+          const enabled = !disabled && isLegal(legal, action);
           return (
             <button
               key={`${id}-${i}`}
@@ -44,8 +45,9 @@ export function HandPicker({ hand, cardDraw, chips, legal, onAction }: HandPicke
           <button
             key={a.id}
             type="button"
+            disabled={disabled}
             onClick={() => onAction(a.id)}
-            className="pixel-border bg-secondary px-3 py-2 font-pixel text-[10px] text-secondary-foreground"
+            className="pixel-border bg-secondary px-3 disabled:cursor-not-allowed disabled:opacity-40 py-2 font-pixel text-[10px] text-secondary-foreground"
           >
             {a.label}
           </button>

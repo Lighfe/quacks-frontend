@@ -36,3 +36,9 @@ export function newPotOrders(pot: PotEntry[], seen: ReadonlySet<number>): number
   const unseen = pot.map((e) => e.order).filter((o) => !seen.has(o));
   return unseen.length ? [Math.max(...unseen)] : [];
 }
+
+// Revision guard: an older view never replaces a newer one in the cache.
+export function newerView(current: View | undefined, next: View): View {
+  if (current && next.game.revision < current.game.revision) return current;
+  return next;
+}
