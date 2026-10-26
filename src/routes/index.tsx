@@ -9,11 +9,11 @@ function str(v: unknown): string | undefined {
 }
 
 interface IndexSearch {
-  seat?: string;
-  game?: string;
-  api?: string;
-  mock?: boolean;
-  seed?: number;
+  seat?: string | undefined;
+  game?: string | undefined;
+  api?: string | undefined;
+  mock?: boolean | undefined;
+  seed?: number | undefined;
 }
 
 export const Route = createFileRoute("/")({

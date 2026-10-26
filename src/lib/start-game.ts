@@ -33,8 +33,8 @@ export function buildCreateBody(
 
 export interface GameSearch {
   game: string;
-  seat?: string;
-  api?: string;
+  seat?: string | undefined;
+  api?: string | undefined;
 }
 
 export function gameSearchAfterCreate(
