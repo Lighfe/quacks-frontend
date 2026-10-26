@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import type { ChipColour, PotEntry, WindowField } from "@/lib/game-api";
 import { litWindowFields } from "@/lib/brew-view";
 import { spiralLayout, type FieldShape, type PotLayout } from "@/lib/pot-layout";
