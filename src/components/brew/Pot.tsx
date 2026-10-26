@@ -31,8 +31,8 @@ interface PotProps {
   window?: WindowField[];
   mode: "own" | "other";
   layout?: PotLayout;
-  newOrders?: ReadonlySet<number>;
-  exploded?: boolean;
+  newOrders?: ReadonlySet<number> | undefined;
+  exploded?: boolean | undefined;
   className?: string;
 }
 

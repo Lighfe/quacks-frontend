@@ -117,7 +117,7 @@ export const DEFAULT_API_BASE = "http://localhost:8000";
 export function backendFromSearch(search: { game?: string; api?: string }): BackendConfig {
   const game = search.game ?? "";
   if (game) {
-    const baseUrl = search.api || import.meta.env.VITE_QUACKS_API || DEFAULT_API_BASE;
+    const baseUrl = search.api || import.meta.env["VITE_QUACKS_API"] || DEFAULT_API_BASE;
     return { kind: "http", game, baseUrl };
   }
   return { kind: "mock", game: "", baseUrl: "" };

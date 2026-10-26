@@ -13,8 +13,8 @@ import { Pot } from "./Pot";
 interface OpponentPanelProps {
   seat: Seat;
   chips: ChipType[];
-  newOrders?: ReadonlySet<number>;
-  exploded?: boolean;
+  newOrders?: ReadonlySet<number> | undefined;
+  exploded?: boolean | undefined;
 }
 
 export function OpponentPanel({ seat, chips, newOrders, exploded }: OpponentPanelProps) {
