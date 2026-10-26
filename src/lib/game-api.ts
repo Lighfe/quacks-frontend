@@ -237,7 +237,7 @@ function mockSeatP1(step: number): Seat {
     money: 6,
     rubies: 2,
     flask_full: step < 3,
-    white_total: [2, 5, 5, 8][step],
+    white_total: [2, 5, 5, 8][step] ?? 0,
     droplet: 0,
     start_field: 5,
     rat_tail: 1,
@@ -320,7 +320,7 @@ function mockLog(step: number): GameLog {
 function mockGetView(seat: string): Promise<View> {
   const step = mockState.step;
   const you = seat === "p2" ? "p2" : "p1";
-  const scoringField = you === "p1" ? [10, 13, 15, 18][step] : 9;
+  const scoringField = you === "p1" ? ([10, 13, 15, 18][step] ?? 10) : 9;
   const view: View = {
     game: {
       round: 3,

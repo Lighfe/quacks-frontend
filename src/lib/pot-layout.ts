@@ -43,7 +43,7 @@ function spiralGridPositions(count: number): Point[] {
   let segment = 1;
   while (positions.length < count) {
     for (let rep = 0; rep < 2 && positions.length < count; rep++) {
-      const dir = dirs[dirIndex % 4];
+      const dir = dirs[dirIndex % 4] ?? { x: 1, y: 0 };
       for (let i = 0; i < segment && positions.length < count; i++) {
         x += dir.x;
         y += dir.y;
