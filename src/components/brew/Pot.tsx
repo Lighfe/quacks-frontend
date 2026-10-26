@@ -102,10 +102,14 @@ function trailPath(entry: PotEntry, layout: PotLayout): string {
     const dx = next.x - previous.x;
     const dy = next.y - previous.y;
     const length = Math.hypot(dx, dy) || 1;
-    const wobble = ((entry.order + entry.from + i) % 2 === 0 ? 1 : -1) * 1.2;
-    const cx = (previous.x + next.x) / 2 - (dy / length) * wobble;
-    const cy = (previous.y + next.y) / 2 + (dx / length) * wobble;
-    path += ` Q ${cx} ${cy} ${next.x} ${next.y}`;
+    const wobble = ((entry.order + entry.from + i) % 2 === 0 ? 1 : -1) * 1.5;
+    for (let segment = 1; segment <= 3; segment++) {
+      const t = segment / 3;
+      const offset = segment === 3 ? 0 : segment === 1 ? wobble : -wobble;
+      const x = previous.x + dx * t - (dy / length) * offset;
+      const y = previous.y + dy * t + (dx / length) * offset;
+      path += ` L ${x} ${y}`;
+    }
   }
   return path;
 }

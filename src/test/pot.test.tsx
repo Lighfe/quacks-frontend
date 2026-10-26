@@ -33,6 +33,22 @@ describe("Pot", () => {
     expect(doc.querySelector("[data-pot-path]")).not.toBeNull();
   });
 
+  it("wobbles each trail step at alternating 1.5-unit offsets while keeping text upright", () => {
+    const doc = dom(renderToStaticMarkup(<Pot pot={playtestPot} mode="own" />));
+    const trail = doc.querySelector('[data-trail="3"]')?.getAttribute("d") ?? "";
+    const numbers = trail.match(/-?\d+(?:\.\d+)?(?:e[+-]?\d+)?/gi)?.map(Number) ?? [];
+    expect(numbers).toHaveLength(8); // start and three interpolated points
+    const [x0 = 0, y0 = 0, x1 = 0, y1 = 0, x2 = 0, y2 = 0, x3 = 0, y3 = 0] = numbers;
+    const dx = x3 - x0;
+    const dy = y3 - y0;
+    const length = Math.hypot(dx, dy);
+    const offset1 = ((x1 - x0) * -dy + (y1 - y0) * dx) / length;
+    const offset2 = ((x2 - x0) * -dy + (y2 - y0) * dx) / length;
+    expect(Math.abs(offset1)).toBeCloseTo(1.5, 10);
+    expect(offset2).toBeCloseTo(-offset1, 10);
+    expect(doc.querySelectorAll("text[transform], g[transform]")).toHaveLength(0);
+  });
+
   it("shows money, points and ruby on field 53 when a chip landed there and the window repeats 53", () => {
     const pot: PotEntry[] = [
       { order: 1, chip: "orange_6", colour: "orange", value: 6, from: 48, landing: 53 },
