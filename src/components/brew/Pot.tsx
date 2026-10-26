@@ -158,7 +158,7 @@ export function Pot({
           </g>
         );
       })}
-      {exploded
+      {exploded && !reducedMotion
         ? SMOKE_OFFSETS.map((o, i) => (
             <rect
               key={i}
