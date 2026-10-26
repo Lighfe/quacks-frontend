@@ -62,6 +62,7 @@ export function Pot({
   exploded = false,
   className,
 }: PotProps) {
+  const reducedMotion = useReducedMotion();
   const fills = new Map<number, PotEntry>();
   for (const entry of pot) {
     for (let f = entry.from; f <= entry.landing; f++) fills.set(f, entry);
