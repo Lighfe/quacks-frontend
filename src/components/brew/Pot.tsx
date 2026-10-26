@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import type { ChipColour, PotEntry, WindowField } from "@/lib/game-api";
 import { litWindowFields } from "@/lib/brew-view";
 import { spiralLayout, type FieldShape, type PotLayout } from "@/lib/pot-layout";
@@ -25,6 +26,18 @@ const SMOKE_OFFSETS = [
   { x: 0, y: 0 },
 ];
 
+function useReducedMotion(): boolean {
+  const [reduced, setReduced] = useState(false);
+  useEffect(() => {
+    const query = window.matchMedia("(prefers-reduced-motion: reduce)");
+    setReduced(query.matches);
+    const onChange = (event: MediaQueryListEvent) => setReduced(event.matches);
+    query.addEventListener("change", onChange);
+    return () => query.removeEventListener("change", onChange);
+  }, []);
+  return reduced;
+}
+
 interface PotProps {
   pot: PotEntry[];
   // Only used in "own" mode; other seats' pots never show a window.
@@ -49,6 +62,7 @@ export function Pot({
   exploded = false,
   className,
 }: PotProps) {
+  const reducedMotion = useReducedMotion();
   const fills = new Map<number, PotEntry>();
   for (const entry of pot) {
     for (let f = entry.from; f <= entry.landing; f++) fills.set(f, entry);
@@ -65,7 +79,7 @@ export function Pot({
   return (
     <svg
       viewBox={`${-w / 2} ${-h / 2} ${w} ${h}`}
-      className={cn("h-auto w-full", exploded && "pot-shake")}
+      className={cn("h-auto w-full", exploded && !reducedMotion && "pot-shake")}
       role="img"
       aria-label="Potion pot"
     >
@@ -81,7 +95,7 @@ export function Pot({
         const stroke = landing ? "var(--accent)" : litField ? "var(--ring)" : "var(--border)";
         const isNew = landing != null && newOrders?.has(landing.order);
         return (
-          <g key={shape.field} className={isNew ? "chip-drop" : undefined}>
+          <g key={shape.field} className={isNew && !reducedMotion ? "chip-drop" : undefined}>
             <polygon
               points={pointsAttr(shape)}
               fill={fill}
@@ -144,7 +158,7 @@ export function Pot({
           </g>
         );
       })}
-      {exploded
+      {exploded && !reducedMotion
         ? SMOKE_OFFSETS.map((o, i) => (
             <rect
               key={i}
