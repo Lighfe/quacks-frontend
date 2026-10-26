@@ -54,19 +54,20 @@ describe("spiralLayout", () => {
 });
 
 describe("spiralLayout board geometry", () => {
-  it("keeps every pair of rotated squares separated", () => {
-    // SAT on the enclosing 10x10 squares is stronger than checking the
-    // notched outlines themselves, and checks all pairs, not just neighbours.
+  it("keeps every pair of rotated tile outlines separated", () => {
+    // SAT on each outline's convex hull is conservative: it includes the
+    // corner notches, without inventing the enclosing square's missing corners.
     const squares = spiralLayout.all().map((shape) => {
-      const first = shape.outline[0];
-      const second = shape.outline[1];
-      if (!first || !second) throw new Error("missing outline point");
-      const angle = Math.atan2(second.y - first.y, second.x - first.x);
-      const axes = [{ x: Math.cos(angle), y: Math.sin(angle) }, { x: -Math.sin(angle), y: Math.cos(angle) }];
-      const corners = [-1, 1].flatMap((x) => [-1, 1].map((y) => ({
-        x: shape.center.x + 5 * (x * Math.cos(angle) - y * Math.sin(angle)),
-        y: shape.center.y + 5 * (x * Math.sin(angle) + y * Math.cos(angle)),
-      })));
+      const corners = [0, 1, 3, 4, 6, 7, 9, 10].map((index) => {
+        const point = shape.outline[index];
+        if (!point) throw new Error("missing outline point");
+        return point;
+      });
+      const axes = corners.map((point, index) => {
+        const next = corners[(index + 1) % corners.length];
+        if (!next) throw new Error("missing hull point");
+        return { x: -(next.y - point.y), y: next.x - point.x };
+      });
       return { axes, corners };
     });
     for (let n = 0; n < squares.length; n++) {
