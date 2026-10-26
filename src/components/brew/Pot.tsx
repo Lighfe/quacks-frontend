@@ -26,6 +26,18 @@ const SMOKE_OFFSETS = [
   { x: 0, y: 0 },
 ];
 
+function useReducedMotion(): boolean {
+  const [reduced, setReduced] = useState(false);
+  useEffect(() => {
+    const query = window.matchMedia("(prefers-reduced-motion: reduce)");
+    setReduced(query.matches);
+    const onChange = (event: MediaQueryListEvent) => setReduced(event.matches);
+    query.addEventListener("change", onChange);
+    return () => query.removeEventListener("change", onChange);
+  }, []);
+  return reduced;
+}
+
 interface PotProps {
   pot: PotEntry[];
   // Only used in "own" mode; other seats' pots never show a window.
