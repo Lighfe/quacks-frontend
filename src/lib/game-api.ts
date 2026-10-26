@@ -119,7 +119,7 @@ export function resolveApiBase(api?: string): string {
   return api || import.meta.env["VITE_QUACKS_API"] || DEFAULT_API_BASE;
 }
 
-export function backendFromSearch(search: { game?: string; api?: string; mock?: boolean | "playtest" }): BackendConfig {
+export function backendFromSearch(search: { game?: string; api?: string; mock?: boolean | "playtest" | undefined }): BackendConfig {
   const game = search.game ?? "";
   if (game) return { kind: "http", game, baseUrl: resolveApiBase(search.api) };
   if (search.mock === "playtest") return { kind: "mock", game: "", baseUrl: "", mock: "playtest" };
