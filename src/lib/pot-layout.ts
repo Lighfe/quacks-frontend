@@ -64,7 +64,9 @@ function buildSpiralLayout(): PotLayout {
   const positions = spiralPositions(FIELD_COUNT);
   const shapes: FieldShape[] = positions.map((center, field) => {
     const h = CELL / 2;
-    const previous = positions[field - 1] ?? center;
+    // The centre-to-inner-ring link is radial, not part of the spiral arc.
+    // At its join, orient field 1 along the outgoing arc rather than the kink.
+    const previous = field === 1 ? center : positions[field - 1] ?? center;
     const next = positions[field + 1] ?? center;
     const angle = Math.atan2(next.y - previous.y, next.x - previous.x);
     const cos = Math.cos(angle);
