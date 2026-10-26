@@ -320,7 +320,7 @@ function mockLog(step: number): GameLog {
 function mockGetView(seat: string): Promise<View> {
   const step = mockState.step;
   const you = seat === "p2" ? "p2" : "p1";
-  const scoringField = you === "p1" ? ([6, 9, 11, 14][step] ?? 6) : 9;
+  const scoringField = you === "p1" ? ([6, 9, 11, 14][step] ?? 6) : 8;
   const view: View = {
     game: {
       round: 3,

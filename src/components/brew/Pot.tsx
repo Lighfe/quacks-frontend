@@ -46,7 +46,41 @@ interface PotProps {
   layout?: PotLayout;
   newOrders?: ReadonlySet<number> | undefined;
   exploded?: boolean | undefined;
+  // Field of the seat's droplet, as sent by the service.
+  droplet?: number | undefined;
+  // Seat's start_field when rat_tail > 0, else null (no marker).
+  ratTailField?: number | null | undefined;
   className?: string;
+}
+
+// Pixel-art markers in layout units, drawn in field corners so they stay
+// visible over chips.
+function DropletMarker({ shape }: { shape: FieldShape }) {
+  const x = shape.center.x - 5;
+  const y = shape.center.y + 0.6;
+  return (
+    <g data-marker="droplet" shapeRendering="crispEdges">
+      <rect x={x + 1.4} y={y} width={0.9} height={0.9} fill="var(--chip-blue)" />
+      <rect x={x + 0.9} y={y + 0.9} width={1.9} height={0.9} fill="var(--chip-blue)" />
+      <rect x={x + 0.4} y={y + 1.8} width={2.9} height={1.8} fill="var(--chip-blue)" />
+      <rect x={x + 0.9} y={y + 3.6} width={1.9} height={0.8} fill="var(--chip-blue)" />
+      <rect x={x + 0.9} y={y + 1.8} width={0.7} height={0.9} fill="var(--foreground)" />
+    </g>
+  );
+}
+
+function RatTailMarker({ shape }: { shape: FieldShape }) {
+  const x = shape.center.x + 1;
+  const y = shape.center.y + 1;
+  return (
+    <g data-marker="rat-tail" shapeRendering="crispEdges" fill="var(--chip-red)">
+      <rect x={x} y={y + 3} width={1} height={1} />
+      <rect x={x + 1} y={y + 2} width={1} height={1} />
+      <rect x={x + 2} y={y + 3} width={1} height={1} />
+      <rect x={x + 3} y={y + 2} width={1} height={1} />
+      <rect x={x + 3} y={y + 1} width={1} height={1} />
+    </g>
+  );
 }
 
 function pointsAttr(shape: FieldShape): string {
@@ -60,6 +94,8 @@ export function Pot({
   layout = spiralLayout,
   newOrders,
   exploded = false,
+  droplet,
+  ratTailField = null,
   className,
 }: PotProps) {
   const reducedMotion = useReducedMotion();
@@ -74,11 +110,11 @@ export function Pot({
     for (const w of litWindowFields(window)) lit.set(w.field, w);
   }
 
-  const { w, h } = layout.viewBox;
+  const { x: vx, y: vy, w, h } = layout.viewBox;
 
   return (
     <svg
-      viewBox={`${-w / 2} ${-h / 2} ${w} ${h}`}
+      viewBox={`${vx} ${vy} ${w} ${h}`}
       className={cn("h-auto w-full", exploded && !reducedMotion && "pot-shake")}
       role="img"
       aria-label="Potion pot"
@@ -86,12 +122,14 @@ export function Pot({
       {layout.all().map((shape) => {
         const entry = fills.get(shape.field);
         const landing = landings.get(shape.field);
-        const litField = entry ? undefined : lit.get(shape.field);
+        const litField = lit.get(shape.field);
         const fill = entry
           ? CHIP_FILL[entry.colour]
           : litField
             ? "var(--muted)"
             : "var(--secondary)";
+        // With a chip on a lit field, window data moves to small corner labels.
+        const corner = entry != null;
         const stroke = landing ? "var(--accent)" : litField ? "var(--ring)" : "var(--border)";
         const isNew = landing != null && newOrders?.has(landing.order);
         return (
@@ -121,43 +159,58 @@ export function Pot({
               </text>
             ) : null}
             {litField ? (
-              <>
+              <g data-window-field={shape.field}>
                 <text
-                  x={shape.center.x}
-                  y={shape.center.y - 1.6}
-                  textAnchor="middle"
+                  x={corner ? shape.center.x - 4.4 : shape.center.x}
+                  y={corner ? shape.center.y - 3.6 : shape.center.y - 1.6}
+                  textAnchor={corner ? "start" : "middle"}
                   dominantBaseline="central"
-                  fontSize={3.4}
+                  fontSize={corner ? 2.4 : 3.4}
                   fill="var(--accent)"
+                  stroke={corner ? "var(--background)" : undefined}
+                  strokeWidth={corner ? 0.5 : undefined}
+                  paintOrder="stroke"
                   style={{ fontFamily: "var(--font-body)" }}
                 >
                   {litField.money}
                 </text>
                 <text
-                  x={shape.center.x}
-                  y={shape.center.y + 2.2}
-                  textAnchor="middle"
+                  x={corner ? shape.center.x + 4.4 : shape.center.x}
+                  y={corner ? shape.center.y + 3.6 : shape.center.y + 2.2}
+                  textAnchor={corner ? "end" : "middle"}
                   dominantBaseline="central"
-                  fontSize={3.4}
+                  fontSize={corner ? 2.4 : 3.4}
                   fill="var(--foreground)"
+                  stroke={corner ? "var(--background)" : undefined}
+                  strokeWidth={corner ? 0.5 : undefined}
+                  paintOrder="stroke"
                   style={{ fontFamily: "var(--font-body)" }}
                 >
                   {litField.points}
                 </text>
                 {litField.ruby ? (
                   <rect
+                    data-ruby
                     x={shape.center.x + 2.4}
                     y={shape.center.y - 4.4}
                     width={2}
                     height={2}
                     fill="var(--chip-red)"
+                    stroke={corner ? "var(--background)" : undefined}
+                    strokeWidth={corner ? 0.4 : undefined}
                   />
                 ) : null}
-              </>
+              </g>
             ) : null}
           </g>
         );
       })}
+      {droplet != null && droplet >= 0 && droplet < layout.fieldCount ? (
+        <DropletMarker shape={layout.field(droplet)} />
+      ) : null}
+      {ratTailField != null && ratTailField >= 0 && ratTailField < layout.fieldCount ? (
+        <RatTailMarker shape={layout.field(ratTailField)} />
+      ) : null}
       {exploded && !reducedMotion
         ? SMOKE_OFFSETS.map((o, i) => (
             <rect
