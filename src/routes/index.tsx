@@ -2,6 +2,7 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 
 import { GameScreen } from "@/components/brew/GameScreen";
 import { StartScreen } from "@/components/brew/StartScreen";
+import { STATIC_MOCKS, type StaticMock } from "@/lib/game-api";
 
 function str(v: unknown): string | undefined {
   const s = typeof v === "string" ? v : typeof v === "number" ? String(v) : "";
@@ -12,7 +13,7 @@ interface IndexSearch {
   seat?: string | undefined;
   game?: string | undefined;
   api?: string | undefined;
-  mock?: boolean | "playtest" | "playtest-zero" | "playtest-small-bag" | undefined;
+  mock?: boolean | StaticMock | undefined;
   seed?: number | undefined;
 }
 
@@ -24,7 +25,7 @@ export const Route = createFileRoute("/")({
       seat: str(search["seat"]),
       game: str(search["game"]),
       api: str(search["api"]),
-      mock: search["mock"] === "playtest" ? "playtest" : search["mock"] === "playtest-zero" ? "playtest-zero" : search["mock"] === "playtest-small-bag" ? "playtest-small-bag" : str(search["mock"]) === "1" || search["mock"] === true ? true : undefined,
+      mock: STATIC_MOCKS.includes(search["mock"] as StaticMock) ? (search["mock"] as StaticMock) : str(search["mock"]) === "1" || search["mock"] === true ? true : undefined,
       seed:
         seedRaw !== undefined && seedRaw !== "" && Number.isFinite(seedNum) ? seedNum : undefined,
     };
