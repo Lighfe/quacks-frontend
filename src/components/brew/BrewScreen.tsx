@@ -32,7 +32,7 @@ export function BrewScreen({
   // chips can also leave the pot.
   const seenOrders = useRef(new Map<string, Set<number>>());
   const ownPanelRef = useRef<HTMLDivElement>(null);
-  const startedFlight = useRef<number | null>(null);
+  const startedFlight = useRef<View | null>(null);
   const [flightEntry, setFlightEntry] = useState<PotEntry | null>(null);
   const prevStatus = useRef(new Map<string, string>());
   const freshOrders = new Map<string, Set<number>>();
@@ -55,14 +55,15 @@ export function BrewScreen({
   // Draw flight: only for the own seat, and only when its orders were seen
   // before — on the first view after mount nothing flies. Started during
   // render so the flight element is in the same commit as the pot update.
+  // The guard is the view object, not the order: orders restart each round.
   const ownOrder =
     youSeat && seenOrders.current.has(youSeat.id)
       ? (freshOrders.get(youSeat.id)?.values().next().value ?? null)
       : null;
-  if (youSeat && ownOrder != null && ownOrder !== startedFlight.current) {
+  if (youSeat && ownOrder != null && view !== startedFlight.current) {
     const entry = youSeat.pot.find((e) => e.order === ownOrder);
     if (entry) {
-      startedFlight.current = ownOrder;
+      startedFlight.current = view;
       setFlightEntry(entry);
     }
   }
