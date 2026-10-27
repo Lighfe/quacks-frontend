@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { cleanup, render, screen } from "@testing-library/react";
+import { cleanup, render, screen, waitForElementToBeRemoved } from "@testing-library/react";
 
 import { BrewScreen } from "@/components/brew/BrewScreen";
 import { backendFromSearch, getView, type PotEntry, type View } from "@/lib/game-api";
@@ -46,6 +46,21 @@ describe("draw flight", () => {
     rerender(<BrewScreen view={withNewEntry(view, "p2")} onAction={vi.fn()} pending={false} error={null} />);
     await settle();
     expect(screen.queryByTestId("draw-flight")).toBeNull();
+  });
+
+  it("flies again when a later view reuses the same order number", async () => {
+    const view = await loadPlaytest();
+    const { rerender } = renderBrew(view);
+    const drawn1 = withNewEntry(view, "p1");
+    rerender(<BrewScreen view={drawn1} onAction={vi.fn()} pending={false} error={null} />);
+    await screen.findByTestId("draw-flight");
+    // Pot back to the original contents: new object, higher revision.
+    const back: View = { ...view, game: { ...view.game, revision: drawn1.game.revision + 1 } };
+    rerender(<BrewScreen view={back} onAction={vi.fn()} pending={false} error={null} />);
+    await waitForElementToBeRemoved(() => screen.queryByTestId("draw-flight"), { timeout: 2000 });
+    // Same order number again (orders restart each round): must fly again.
+    rerender(<BrewScreen view={withNewEntry(back, "p1")} onAction={vi.fn()} pending={false} error={null} />);
+    await screen.findByTestId("draw-flight");
   });
 
   it("renders no flight with reduced motion", async () => {
