@@ -42,6 +42,9 @@
   --color-chip-yellow: var(--chip-yellow);
   --color-chip-purple: var(--chip-purple);
   --color-sack-ink: var(--sack-ink);
+  --color-parchment: var(--parchment);
+  --color-parchment-shade: var(--parchment-shade);
+  --color-parchment-ink: var(--parchment-ink);
 }
 
 :root {
@@ -93,6 +96,9 @@
   --sack-outline: oklch(0.2 0.015 50);
   --sack-cord: oklch(0.62 0.04 80);
   --sack-ink: oklch(0.9 0.02 85);
+  --parchment: oklch(0.8 0.045 85);
+  --parchment-shade: oklch(0.66 0.05 70);
+  --parchment-ink: oklch(0.25 0.03 50);
 }
 
 /* Chunky stepped pixel border */
@@ -237,4 +243,9 @@
   h1, h2, h3, button {
     font-family: var(--font-pixel);
   }
+}
+
+/* Torn parchment note: jagged stepped edges on all sides. */
+@utility torn-edge {
+  clip-path: polygon(0% 4%, 6% 0%, 14% 3%, 22% 0%, 35% 2%, 48% 0%, 60% 3%, 72% 0%, 84% 2%, 94% 0%, 100% 5%, 98% 18%, 100% 32%, 97% 50%, 100% 66%, 98% 82%, 100% 96%, 90% 100%, 78% 97%, 64% 100%, 50% 97%, 36% 100%, 24% 97%, 12% 100%, 2% 97%, 0% 84%, 2% 66%, 0% 48%, 3% 30%, 0% 16%);
 }

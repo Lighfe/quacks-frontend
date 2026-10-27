@@ -18,11 +18,13 @@ export function BrewScreen({
   onAction,
   pending,
   error,
+  hideActions = false,
 }: {
   view: View;
   onAction: (id: string) => void;
   pending: boolean;
   error: string | null;
+  hideActions?: boolean;
 }) {
   // Animation tracking: chips with an order not seen before drop in; a seat
   // whose status just changed to exploded gets smoke. Diffed by order because
@@ -49,7 +51,7 @@ export function BrewScreen({
   const others = view.seats.filter((s) => s.id !== view.you);
 
   return (
-    <main className="min-h-screen bg-background p-4 text-foreground">
+    <div className="bg-background p-4 text-foreground">
       <div className="mx-auto flex max-w-6xl flex-col gap-4">
         <RoundHeader game={view.game} />
         <div className="flex flex-col gap-4 lg:flex-row">
@@ -76,6 +78,7 @@ export function BrewScreen({
                 </div>
               </div>
             </PixelFrame>
+            {hideActions ? null : (<>
             <HandPicker
               hand={view.hand}
               cardDraw={view.card_draw}
@@ -85,6 +88,7 @@ export function BrewScreen({
               disabled={pending}
             />
             <ActionBar legal={view.legal} error={error} onAction={onAction} disabled={pending} />
+            </>)}
           </div>
           <div className="flex w-full flex-col gap-4 lg:w-80">
             {others.map((s) => (
@@ -100,6 +104,6 @@ export function BrewScreen({
           </div>
         </div>
       </div>
-    </main>
+    </div>
   );
 }

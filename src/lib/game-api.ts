@@ -75,7 +75,22 @@ export interface GameLog {
   events: Record<string, unknown>[];
 }
 
+export interface IngredientChip {
+  chip: string;
+  value: number;
+  price: number | null;
+  min_round: number | null;
+  available: boolean;
+}
+
+export interface Ingredient {
+  colour: ChipColour;
+  effect: string;
+  chips: IngredientChip[];
+}
+
 export interface View {
+  ingredients?: Ingredient[];
   game: GameInfo;
   you: string;
   to_act: string[];
@@ -113,7 +128,8 @@ export interface BackendConfig {
   mock?: StaticMock;
 }
 
-export type StaticMock = "playtest" | "playtest-zero" | "playtest-small-bag";
+export const STATIC_MOCKS = ["playtest", "playtest-zero", "playtest-small-bag", "shop", "ruby"] as const;
+export type StaticMock = (typeof STATIC_MOCKS)[number];
 
 export const DEFAULT_API_BASE = "http://localhost:8000";
 
@@ -124,7 +140,7 @@ export function resolveApiBase(api?: string): string {
 export function backendFromSearch(search: { game?: string; api?: string; mock?: boolean | StaticMock | undefined }): BackendConfig {
   const game = search.game ?? "";
   if (game) return { kind: "http", game, baseUrl: resolveApiBase(search.api) };
-  if (search.mock === "playtest" || search.mock === "playtest-zero" || search.mock === "playtest-small-bag") {
+  if (typeof search.mock === "string" && (STATIC_MOCKS as readonly string[]).includes(search.mock)) {
     return { kind: "mock", game: "", baseUrl: "", mock: search.mock };
   }
   return { kind: "mock", game: "", baseUrl: "" };
@@ -186,6 +202,8 @@ export async function createGame(baseUrl: string, body: CreateGameBody): Promise
 }
 
 export function getView(backend: BackendConfig, seat: string): Promise<View> {
+  if (backend.kind === "mock" && backend.mock === "shop") return Promise.resolve(shopView);
+  if (backend.kind === "mock" && backend.mock === "ruby") return Promise.resolve(rubyView);
   if (backend.kind === "mock" && backend.mock === "playtest") return Promise.resolve(playtestView);
   if (backend.kind === "mock" && backend.mock === "playtest-zero") return Promise.resolve(playtestZeroView);
   if (backend.kind === "mock" && backend.mock === "playtest-small-bag") return Promise.resolve(playtestSmallBagView);
@@ -199,6 +217,8 @@ export function sendAction(
   action: string,
   revision: number,
 ): Promise<View> {
+  if (backend.kind === "mock" && backend.mock === "shop") return Promise.resolve(shopView);
+  if (backend.kind === "mock" && backend.mock === "ruby") return Promise.resolve(rubyView);
   if (backend.kind === "mock" && backend.mock === "playtest") return Promise.resolve(playtestView);
   if (backend.kind === "mock" && backend.mock === "playtest-zero") return Promise.resolve(playtestZeroView);
   if (backend.kind === "mock" && backend.mock === "playtest-small-bag") return Promise.resolve(playtestSmallBagView);
@@ -486,4 +506,46 @@ const playtestSmallBagView: View = {
         ? { ...seat, bag: {} }
         : seat,
   ),
+};
+
+// Static shop / ruby fixtures (round 1).
+function ing(colour: ChipColour, effect: string, chips: [number, number | null, number | null][], round: number): Ingredient {
+  return {
+    colour, effect,
+    chips: chips.map(([value, price, min]) => ({
+      chip: `${colour}_${value}`, value, price, min_round: min,
+      available: price !== null && min !== null && min <= round,
+    })),
+  };
+}
+const ROUND1_INGREDIENTS: Ingredient[] = [
+  ing("white", "Too many white chips make the pot explode.", [[1, null, null], [2, null, null], [3, null, null]], 1),
+  ing("orange", "No effect.", [[1, 3, 1], [6, 18, 1]], 1),
+  ing("green", "1 ruby if among the last two chips.", [[1, 4, 1], [2, 8, 1], [4, 14, 1]], 1),
+  ing("blue", "Draw chips equal to its value, place one.", [[1, 5, 1], [2, 10, 1], [4, 19, 1]], 1),
+  ing("red", "+1 with 1-2 orange chips, +2 with 3+.", [[1, 6, 1], [2, 10, 1], [4, 16, 1]], 1),
+  ing("black", "Compare black chips: rubies or droplet.", [[1, 10, 1]], 1),
+  ing("yellow", "Sends the white chip before it back.", [[1, 8, 2], [2, 12, 2], [4, 18, 2]], 1),
+  ing("purple", "Points, rubies and droplet by count.", [[1, 9, 3]], 1),
+];
+const shopView: View = {
+  ...playtestView,
+  game: { ...playtestView.game, round: 1, phase: "shop" },
+  to_act: ["p1"],
+  legal: [
+    { id: "buy:orange_1", label: "buy orange 1" },
+    { id: "buy:green_1", label: "buy green 1" },
+    { id: "buy:blue_1", label: "buy blue 1" },
+    { id: "done", label: "done" },
+  ],
+  ingredients: ROUND1_INGREDIENTS,
+};
+const rubyView: View = {
+  ...shopView,
+  game: { ...shopView.game, phase: "ruby" },
+  legal: [
+    { id: "ruby_drop", label: "ruby drop: 2 rubies, droplet +1" },
+    { id: "refill_flask", label: "refill flask: 2 rubies" },
+    { id: "done", label: "done" },
+  ],
 };

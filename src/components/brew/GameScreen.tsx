@@ -7,12 +7,12 @@ import {
   backendFromSearch,
   getView,
   sendAction,
+  type StaticMock,
   type View,
 } from "@/lib/game-api";
 import { decideHotSeat, isLegal, newerView } from "@/lib/brew-view";
-import { BrewScreen } from "./BrewScreen";
 import { EndScreen } from "./EndScreen";
-import { PhaseScreen } from "./PhaseScreen";
+import { TabbedGame } from "./TabbedGame";
 import { PixelFrame } from "./PixelFrame";
 
 const KEY_ACTIONS: Record<string, string> = {
@@ -32,7 +32,7 @@ export function GameScreen({
   seat: string;
   game: string;
   api: string;
-  mock?: boolean | "playtest" | "playtest-zero" | "playtest-small-bag" | undefined;
+  mock?: boolean | StaticMock | undefined;
   onNewGame: () => void;
 }) {
   const backend = useMemo(() => backendFromSearch({ game, api, mock }), [game, api, mock]);
@@ -156,16 +156,7 @@ export function GameScreen({
   }
   const phase = view.game.phase;
   if (phase === "game_over") return <EndScreen view={view} onNewGame={onNewGame} />;
-  if (phase === "brew" || phase === "brewing") {
-    return <BrewScreen view={view} onAction={act} pending={pending} error={notice} />;
-  }
   return (
-    <PhaseScreen
-      view={view}
-      shownSeat={shownSeat}
-      onAction={act}
-      pending={pending}
-      error={notice}
-    />
+    <TabbedGame view={view} shownSeat={shownSeat} onAction={act} pending={pending} error={notice} />
   );
 }
