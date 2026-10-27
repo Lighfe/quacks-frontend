@@ -166,9 +166,14 @@ export class CreateGameError extends Error {
   }
 }
 
+// Shown verbatim when the service cannot be reached at all (fetch rejects,
+// which is also how the browser reports a CORS failure).
+const SERVE_COMMAND = "uv run --group web quack-rl serve";
+
 export function formatCreateGameError(err: unknown): string {
   if (!(err instanceof CreateGameError)) return "The game could not be started.";
-  if (err.status === undefined) return `Service at ${err.baseUrl} is not reachable.`;
+  if (err.status === undefined)
+    return `The local game service at ${err.baseUrl} is not reachable from this page. Start it with: ${SERVE_COMMAND}`;
   const base = `Service at ${err.baseUrl} answered HTTP ${err.status}`;
   return err.detail ? `${base}: ${err.detail}` : `${base}.`;
 }
