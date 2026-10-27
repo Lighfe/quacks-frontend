@@ -50,3 +50,25 @@ describe("tabs and shop dialogue", () => {
     expect(onAction.mock.calls.map((c) => c[0])).toEqual(["ruby_drop", "refill_flask"]);
   });
 });
+
+describe("shop dialogue fallbacks", () => {
+  it("fallback entry shows full label and sends its id", async () => {
+    const shop = await load("shop");
+    const { onAction } = renderGame({ ...shop, legal: [...shop.legal, { id: "other_thing", label: "other: thing" }] });
+    fireEvent.click(screen.getByRole("button", { name: "other: thing" }));
+    expect(onAction).toHaveBeenCalledWith("other_thing");
+  });
+
+  it("ruby buttons show effect from label", async () => {
+    const { container } = renderGame(await load("ruby"));
+    expect(container.querySelector('[data-action="ruby_drop"]')!.textContent).toContain("droplet +1");
+    expect(container.querySelector('[data-action="refill_flask"]')!.textContent).toContain("refill flask");
+  });
+
+  it("empty legal shows no buttons and waiting line", async () => {
+    const shop = await load("shop");
+    const { container } = renderGame({ ...shop, legal: [], to_act: ["p2"] });
+    expect(container.querySelectorAll("[data-action]").length).toBe(0);
+    expect(screen.getByText("Waiting for p2")).toBeTruthy();
+  });
+});
