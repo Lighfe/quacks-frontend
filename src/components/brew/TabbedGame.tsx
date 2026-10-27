@@ -55,22 +55,24 @@ export function TabbedGame({
   );
 
   return (
-    <main className="min-h-screen bg-background text-foreground">
+    <main className="flex min-h-screen flex-col bg-background text-foreground">
       <div role="tablist" className="mx-auto flex max-w-6xl gap-2 px-4 pt-4">
         {tabBtn("cauldron", "Cauldron", POT_ICON)}
         {tabBtn("ingredients", "Ingredients", BOOK_ICON)}
       </div>
-      {tab === "ingredients" ? (
-        <div className="mx-auto max-w-6xl p-4">
-          <IngredientsBoard ingredients={view.ingredients ?? []} />
-        </div>
-      ) : brewing || shopLike ? (
-        <BrewScreen view={view} onAction={onAction} pending={pending} error={error} hideActions={shopLike} />
-      ) : (
-        <PhaseScreen view={view} shownSeat={shownSeat} onAction={onAction} pending={pending} error={error} />
-      )}
+      <div className="min-h-0 flex-1 pb-24">
+        {tab === "ingredients" ? (
+          <div className="mx-auto max-w-6xl p-4">
+            <IngredientsBoard ingredients={view.ingredients ?? []} />
+          </div>
+        ) : brewing || shopLike ? (
+          <BrewScreen view={view} onAction={onAction} pending={pending} error={error} hideActions={shopLike} />
+        ) : (
+          <PhaseScreen view={view} shownSeat={shownSeat} onAction={onAction} pending={pending} error={error} />
+        )}
+      </div>
       {shopLike ? (
-        <div className="mx-auto max-w-6xl px-4 pb-4">
+        <div className="sticky bottom-0 z-20 bg-background mx-auto w-full max-w-6xl px-4 pb-4">
           <ShopDialog view={view} onAction={onAction} pending={pending} error={error} />
         </div>
       ) : null}
