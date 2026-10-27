@@ -69,6 +69,8 @@
   --frame-edge: oklch(0.38 0.022 85);
   --pot-dark: oklch(0.21 0.009 155);
   --pot-lit: oklch(0.31 0.025 75);
+  --pot-money: #f5c842;
+  --pot-points: #d4b0ff;
   --brew-glow: oklch(0.43 0.055 75);
   --pixel-corners: polygon(0 8px, 4px 8px, 4px 4px, 8px 4px, 8px 0,
     calc(100% - 8px) 0, calc(100% - 8px) 4px, calc(100% - 4px) 4px,
