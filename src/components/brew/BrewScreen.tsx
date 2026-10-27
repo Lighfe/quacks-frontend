@@ -50,16 +50,26 @@ export function BrewScreen({
   }, [view]);
 
   const youSeat = view.seats.find((s) => s.id === view.you);
-  if (!youSeat) return null;
-  const others = view.seats.filter((s) => s.id !== view.you);
 
   // Draw flight: only for the own seat, and only when its orders were seen
   // before — on the first view after mount nothing flies.
-  const ownOrder = seenOrders.current.has(youSeat.id)
-    ? (freshOrders.get(youSeat.id)?.values().next().value ?? null)
-    : null;
+  const ownOrder =
+    youSeat && seenOrders.current.has(youSeat.id)
+      ? (freshOrders.get(youSeat.id)?.values().next().value ?? null)
+      : null;
   const flightEntry =
-    flightOrder != null ? youSeat.pot.find((e) => e.order === flightOrder) : undefined;
+    youSeat && flightOrder != null
+      ? youSeat.pot.find((e) => e.order === flightOrder)
+      : undefined;
+  useEffect(() => {
+    if (ownOrder != null) setFlightOrder(ownOrder);
+  }, [ownOrder]);
+  useEffect(() => {
+    if (flightOrder != null && !flightEntry) setFlightOrder(null);
+  }, [flightOrder, flightEntry]);
+
+  if (!youSeat) return null;
+  const others = view.seats.filter((s) => s.id !== view.you);
 
   return (
     <div className="bg-background p-4 text-foreground">
@@ -100,6 +110,14 @@ export function BrewScreen({
             />
             <ActionBar legal={view.legal} error={error} onAction={onAction} disabled={pending} />
             </>)}
+            {flightEntry ? (
+              <DrawFlight
+                key={flightEntry.order}
+                entry={flightEntry}
+                scope={ownPanelRef}
+                onDone={() => setFlightOrder(null)}
+              />
+            ) : null}
           </div>
           <div className="flex w-full flex-col gap-4 lg:w-80">
             {others.map((s) => (
