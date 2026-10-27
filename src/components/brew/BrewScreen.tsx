@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 
-import type { View } from "@/lib/game-api";
+import type { PotEntry, View } from "@/lib/game-api";
 import { newPotOrders } from "@/lib/brew-view";
 import { ActionBar } from "./ActionBar";
 import { DrawFlight } from "./DrawFlight";
@@ -32,7 +32,8 @@ export function BrewScreen({
   // chips can also leave the pot.
   const seenOrders = useRef(new Map<string, Set<number>>());
   const ownPanelRef = useRef<HTMLDivElement>(null);
-  const [flightOrder, setFlightOrder] = useState<number | null>(null);
+  const startedFlight = useRef<number | null>(null);
+  const [flightEntry, setFlightEntry] = useState<PotEntry | null>(null);
   const prevStatus = useRef(new Map<string, string>());
   const freshOrders = new Map<string, Set<number>>();
   const freshExplosions = new Set<string>();
@@ -52,21 +53,19 @@ export function BrewScreen({
   const youSeat = view.seats.find((s) => s.id === view.you);
 
   // Draw flight: only for the own seat, and only when its orders were seen
-  // before — on the first view after mount nothing flies.
+  // before — on the first view after mount nothing flies. Started during
+  // render so the flight element is in the same commit as the pot update.
   const ownOrder =
     youSeat && seenOrders.current.has(youSeat.id)
       ? (freshOrders.get(youSeat.id)?.values().next().value ?? null)
       : null;
-  const flightEntry =
-    youSeat && flightOrder != null
-      ? youSeat.pot.find((e) => e.order === flightOrder)
-      : undefined;
-  useEffect(() => {
-    if (ownOrder != null) setFlightOrder(ownOrder);
-  }, [ownOrder]);
-  useEffect(() => {
-    if (flightOrder != null && !flightEntry) setFlightOrder(null);
-  }, [flightOrder, flightEntry]);
+  if (youSeat && ownOrder != null && ownOrder !== startedFlight.current) {
+    const entry = youSeat.pot.find((e) => e.order === ownOrder);
+    if (entry) {
+      startedFlight.current = ownOrder;
+      setFlightEntry(entry);
+    }
+  }
 
   if (!youSeat) return null;
   const others = view.seats.filter((s) => s.id !== view.you);
@@ -115,7 +114,7 @@ export function BrewScreen({
                 key={flightEntry.order}
                 entry={flightEntry}
                 scope={ownPanelRef}
-                onDone={() => setFlightOrder(null)}
+                onDone={() => setFlightEntry(null)}
               />
             ) : null}
           </div>

@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type RefObject } from "react";
+import { useLayoutEffect, useRef, useState, type RefObject } from "react";
 
 import type { PotEntry } from "@/lib/game-api";
 import { ChipToken } from "./Chip";
@@ -31,8 +31,9 @@ export function DrawFlight({
   const doneRef = useRef(onDone);
   doneRef.current = onDone;
 
-  // Measure start (own sack) and end (landing field) once on mount.
-  useEffect(() => {
+  // Measure start (own sack) and end (landing field) once on mount, in a
+  // layout effect so the token is attached before the paint.
+  useLayoutEffect(() => {
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
       doneRef.current();
       return;
@@ -58,7 +59,7 @@ export function DrawFlight({
   }, []);
 
   // Fly along a small arc; remove on finish with a hard fallback timer.
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (!flight) return;
     const el = tokenRef.current;
     const fallback = setTimeout(() => doneRef.current(), CLEANUP_MS);
