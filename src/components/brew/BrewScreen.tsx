@@ -1,8 +1,9 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import type { View } from "@/lib/game-api";
 import { newPotOrders } from "@/lib/brew-view";
 import { ActionBar } from "./ActionBar";
+import { DrawFlight } from "./DrawFlight";
 import { Bag } from "./Bag";
 import { HandPicker } from "./HandPicker";
 import { LogPanel } from "./LogPanel";
@@ -30,6 +31,8 @@ export function BrewScreen({
   // whose status just changed to exploded gets smoke. Diffed by order because
   // chips can also leave the pot.
   const seenOrders = useRef(new Map<string, Set<number>>());
+  const ownPanelRef = useRef<HTMLDivElement>(null);
+  const [flightOrder, setFlightOrder] = useState<number | null>(null);
   const prevStatus = useRef(new Map<string, string>());
   const freshOrders = new Map<string, Set<number>>();
   const freshExplosions = new Set<string>();
@@ -47,6 +50,24 @@ export function BrewScreen({
   }, [view]);
 
   const youSeat = view.seats.find((s) => s.id === view.you);
+
+  // Draw flight: only for the own seat, and only when its orders were seen
+  // before — on the first view after mount nothing flies.
+  const ownOrder =
+    youSeat && seenOrders.current.has(youSeat.id)
+      ? (freshOrders.get(youSeat.id)?.values().next().value ?? null)
+      : null;
+  const flightEntry =
+    youSeat && flightOrder != null
+      ? youSeat.pot.find((e) => e.order === flightOrder)
+      : undefined;
+  useEffect(() => {
+    if (ownOrder != null) setFlightOrder(ownOrder);
+  }, [ownOrder]);
+  useEffect(() => {
+    if (flightOrder != null && !flightEntry) setFlightOrder(null);
+  }, [flightOrder, flightEntry]);
+
   if (!youSeat) return null;
   const others = view.seats.filter((s) => s.id !== view.you);
 
@@ -55,7 +76,7 @@ export function BrewScreen({
       <div className="mx-auto flex max-w-6xl flex-col gap-4">
         <RoundHeader game={view.game} />
         <div className="flex flex-col gap-4 lg:flex-row">
-          <div className="flex flex-1 flex-col gap-4">
+          <div ref={ownPanelRef} className="flex flex-1 flex-col gap-4">
             <PixelFrame title={`${youSeat.id} — ${youSeat.status}`}>
               <div className="flex flex-col gap-4 md:flex-row">
                 <Pot
@@ -89,6 +110,14 @@ export function BrewScreen({
             />
             <ActionBar legal={view.legal} error={error} onAction={onAction} disabled={pending} />
             </>)}
+            {flightEntry ? (
+              <DrawFlight
+                key={flightEntry.order}
+                entry={flightEntry}
+                scope={ownPanelRef}
+                onDone={() => setFlightOrder(null)}
+              />
+            ) : null}
           </div>
           <div className="flex w-full flex-col gap-4 lg:w-80">
             {others.map((s) => (
