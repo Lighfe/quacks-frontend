@@ -12,7 +12,7 @@ export function rubyPriceFromLabel(label: string): number | null {
 }
 
 const btn =
-  "pixel-border flex items-center gap-2 bg-sack-fill px-3 py-2 font-pixel text-[10px] text-sack-ink disabled:cursor-not-allowed disabled:opacity-40";
+  "pixel-border flex items-center gap-2 bg-parchment-shade px-3 py-2 font-pixel text-[10px] text-parchment-ink disabled:cursor-not-allowed disabled:opacity-40";
 
 export function ShopDialog({
   view,
