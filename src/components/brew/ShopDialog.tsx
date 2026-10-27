@@ -11,6 +11,13 @@ export function rubyPriceFromLabel(label: string): number | null {
   return m ? Number(m[1]) : null;
 }
 
+// Ruby button text: the label's effect part without the price, else its name.
+export function rubyActionText(label: string): string {
+  const [name = "", rest = ""] = label.split(/:(.*)/s);
+  const effects = rest.split(",").map((p) => p.trim()).filter((p) => p && !/\d+\s*rub/i.test(p));
+  return effects.length ? effects.join(", ") : name.trim();
+}
+
 const btn =
   "pixel-border flex items-center gap-2 bg-parchment-shade px-3 py-2 font-pixel text-[10px] text-parchment-ink disabled:cursor-not-allowed disabled:opacity-40";
 
@@ -56,7 +63,7 @@ export function ShopDialog({
           const ruby = a.id === "ruby_drop" || a.id === "refill_flask" ? rubyPriceFromLabel(a.label) : null;
           return (
             <button key={a.id} type="button" data-action={a.id} disabled={pending} onClick={() => onAction(a.id)} className={btn}>
-              {a.label.split(":")[0]}
+              {ruby !== null ? rubyActionText(a.label) : a.label}
               {ruby !== null ? (
                 <span className="flex items-center gap-1">
                   <PixelSymbol grid={GEM} unit={3} label="rubies" />
