@@ -7,7 +7,7 @@ describe("square snake spiral", () => {
     expect(spiralLayout.all()).toHaveLength(54);
     expect(spiralLayout.field(0).center).toEqual({ x: 0, y: 0 });
     expect(spiralLayout.field(1).center).toEqual({ x: 12, y: 0 });
-    expect(spiralLayout.field(2).center).toEqual({ x: 13, y: -12 });
+    expect(spiralLayout.field(2).center).toEqual({ x: 12, y: -12 });
     expect(() => spiralLayout.field(54)).toThrow(RangeError);
   });
 

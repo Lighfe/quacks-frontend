@@ -173,7 +173,7 @@ export function Pot({
           : litField
              ? "var(--pot-lit)"
              : "var(--pot-dark)";
-        // With a chip on a lit field, window data moves to small corner labels.
+         // With a chip on a lit field, window data moves to corner labels.
         const corner = entry != null;
         const stroke = landing ? "var(--accent)" : litField ? "var(--ring)" : "var(--border)";
         const isNew = landing != null && newOrders?.has(landing.order);
@@ -211,14 +211,14 @@ export function Pot({
             {litField ? (
               <g data-window-field={shape.field}>
                 {/* Symbol left, number right of it; gem stays in the upper right corner. */}
-                <PixelIcon grid={COIN} x={shape.center.x - 4.7} y={shape.center.y + (corner ? -4.6 : -2.6)} unit={corner ? 0.3 : 0.4} label="money" />
+                 <PixelIcon grid={COIN} x={shape.center.x - 4.7} y={shape.center.y + (corner ? -4.6 : -2.6)} unit={0.3} label="money" />
                 <text
-                  x={shape.center.x + (corner ? -3.0 : -2.4)}
+                   x={shape.center.x - 2.9}
                   y={corner ? shape.center.y - 3.6 : shape.center.y - 1.6}
                   textAnchor="start"
                   dominantBaseline="central"
-                  fontSize={corner ? 2.4 : 3.0}
-                  fill="var(--accent)"
+                   fontSize={3}
+                   fill="var(--pot-money)"
                   stroke={corner ? "var(--background)" : undefined}
                   strokeWidth={corner ? 0.5 : undefined}
                   paintOrder="stroke"
@@ -226,14 +226,14 @@ export function Pot({
                 >
                   {litField.money}
                 </text>
-                <PixelIcon grid={STAR} x={shape.center.x - 4.7} y={shape.center.y + (corner ? 2.85 : 1.2)} unit={corner ? 0.3 : 0.4} label="points" />
+                 <PixelIcon grid={STAR} x={shape.center.x - 4.7} y={shape.center.y + (corner ? 2.85 : 1.2)} unit={0.3} label="points" />
                 <text
-                  x={shape.center.x + (corner ? -3.0 : -2.4)}
+                   x={shape.center.x - 2.9}
                   y={corner ? shape.center.y + 3.6 : shape.center.y + 2.2}
                   textAnchor="start"
                   dominantBaseline="central"
-                  fontSize={corner ? 2.4 : 3.0}
-                  fill="var(--foreground)"
+                   fontSize={3}
+                   fill="var(--pot-points)"
                   stroke={corner ? "var(--background)" : undefined}
                   strokeWidth={corner ? 0.5 : undefined}
                   paintOrder="stroke"
