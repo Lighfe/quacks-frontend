@@ -24,75 +24,62 @@ export interface PotLayout {
 
 const FIELD_COUNT = 54;
 const CELL = 10;
-export const SPIRAL_STEP = 12;
-export const SPIRAL_TURN_PITCH = 19;
+const STEP = 12;
 export const SPIRAL_MARGIN = 4;
 
-// Field 0 is the centre. Fields 1 onward sample r = 12 + b * theta
-// at equal arc lengths, winding counter-clockwise in screen coordinates.
+// Axis-aligned square gaps; geometry only, independent of game state.
+function fits(candidate: Point, previous: Point, consecutive: boolean): boolean {
+  const dx = Math.abs(candidate.x - previous.x);
+  const dy = Math.abs(candidate.y - previous.y);
+  const faces = dx < CELL || dy < CELL;
+  const gap = dx < CELL ? dy - CELL : dx - CELL;
+  if (consecutive) return faces && gap === 2;
+  if (faces) return (gap >= 3 && gap <= 4) || gap >= 10;
+  return dx - CELL >= 2 || dy - CELL >= 2;
+}
+
 function spiralPositions(count: number): Point[] {
-  const b = SPIRAL_TURN_PITCH / (2 * Math.PI);
-  const innerRadius = 12;
-  const primitive = (u: number) =>
-    (b / 2) * (u * Math.sqrt(1 + u * u) + Math.asinh(u));
-  const initialArc = primitive(innerRadius / b);
-  const arcLength = (theta: number) => primitive(theta + innerRadius / b) - initialArc;
-  const angles = Array.from({ length: count }, (_, field) => {
-    if (field <= 1) return 0;
-    const target = (field - 1) * SPIRAL_STEP;
-    let low = 0;
-    let high = Math.sqrt((2 * target) / b) + 1;
-    for (let iteration = 0; iteration < 60; iteration++) {
-      const mid = (low + high) / 2;
-      if (arcLength(mid) < target) low = mid;
-      else high = mid;
+  const positions: Point[] = [{ x: 0, y: 0 }];
+  const directions: Point[] = [
+    { x: 1, y: 0 }, { x: 0, y: -1 },
+    { x: -1, y: 0 }, { x: 0, y: 1 },
+  ];
+  for (let turn = 0; positions.length < count; turn++) {
+    const direction = directions[turn % directions.length];
+    if (!direction) throw new Error("missing spiral direction");
+    const runLength = Math.floor(turn / 2) + 1;
+    for (let step = 0; step < runLength && positions.length < count; step++) {
+      const previous = positions[positions.length - 1];
+      if (!previous) throw new Error("missing previous field");
+      let next: Point | undefined;
+      for (let shift = 0; shift <= 9.5; shift += 0.5) {
+        const candidate = {
+          x: previous.x + STEP * direction.x - shift * direction.y,
+          y: previous.y + STEP * direction.y + shift * direction.x,
+        };
+        if (positions.every((point, index) => fits(candidate, point, index === positions.length - 1))) {
+          next = candidate;
+          break;
+        }
+      }
+      if (!next) throw new Error("no valid spiral field position");
+      positions.push(next);
     }
-    return (low + high) / 2;
-  });
-  return angles.map((theta, field) => {
-    if (field === 0) return { x: 0, y: 0 };
-    if (field === 1) return { x: innerRadius, y: 0 };
-    const radius = innerRadius + b * theta;
-    return {
-      x: radius * Math.cos(theta),
-      y: -radius * Math.sin(theta),
-    };
-  });
+  }
+  return positions;
 }
 
 function buildSpiralLayout(): PotLayout {
-  const positions = spiralPositions(FIELD_COUNT);
-  const shapes: FieldShape[] = positions.map((center, field) => {
-    const h = CELL / 2;
-    // Follow the outgoing path segment; use the incoming segment at the end.
-    // This preserves separation through the tight inner turn's notched corners.
-    const previous = field === FIELD_COUNT - 1 ? positions[field - 1] ?? center : center;
-    const next = positions[field + 1] ?? center;
-    const angle = Math.atan2(next.y - previous.y, next.x - previous.x);
-    const cos = Math.cos(angle);
-    const sin = Math.sin(angle);
-    return {
-      field,
-      center,
-      outline: [
-        { x: -h + 1, y: -h },
-        { x: h - 1, y: -h },
-        { x: h - 1, y: -h + 1 },
-        { x: h, y: -h + 1 },
-        { x: h, y: h - 1 },
-        { x: h - 1, y: h - 1 },
-        { x: h - 1, y: h },
-        { x: -h + 1, y: h },
-        { x: -h + 1, y: h - 1 },
-        { x: -h, y: h - 1 },
-        { x: -h, y: -h + 1 },
-        { x: -h + 1, y: -h + 1 },
-      ].map(({ x, y }) => ({
-        x: center.x + x * cos - y * sin,
-        y: center.y + x * sin + y * cos,
-      })),
-    };
-  });
+  const shapes: FieldShape[] = spiralPositions(FIELD_COUNT).map((center, field) => ({
+    field,
+    center,
+    outline: [
+      { x: center.x - CELL / 2, y: center.y - CELL / 2 },
+      { x: center.x + CELL / 2, y: center.y - CELL / 2 },
+      { x: center.x + CELL / 2, y: center.y + CELL / 2 },
+      { x: center.x - CELL / 2, y: center.y + CELL / 2 },
+    ],
+  }));
   const xs = shapes.flatMap((s) => s.outline.map((p) => p.x));
   const ys = shapes.flatMap((s) => s.outline.map((p) => p.y));
   const minX = Math.min(...xs) - SPIRAL_MARGIN;

@@ -1,115 +1,94 @@
 import { describe, expect, it } from "vitest";
+import { SPIRAL_MARGIN, spiralLayout } from "@/lib/pot-layout";
 
-import { SPIRAL_MARGIN, SPIRAL_STEP, SPIRAL_TURN_PITCH, spiralLayout } from "@/lib/pot-layout";
-
-describe("spiralLayout", () => {
-  it("has exactly 54 fields", () => {
+describe("square snake spiral", () => {
+  it("has 54 fields with field 0 at the origin and the initial east/north directions", () => {
     expect(spiralLayout.fieldCount).toBe(54);
     expect(spiralLayout.all()).toHaveLength(54);
-  });
-
-  it("puts field 0 in the centre", () => {
     expect(spiralLayout.field(0).center).toEqual({ x: 0, y: 0 });
-  });
-
-  it("winds counter-clockwise: field 1 east, field 2 north of centre", () => {
-    const f1 = spiralLayout.field(1).center;
-    const f2 = spiralLayout.field(2).center;
-    expect(f1).toEqual({ x: 12, y: 0 });
-    expect(f2.x).toBeGreaterThan(0);
-    expect(f2.y).toBeLessThan(0);
-  });
-
-  it("gives every field a unique centre and a stepped outline", () => {
-    const centres = new Set(spiralLayout.all().map((s) => `${s.center.x},${s.center.y}`));
-    expect(centres.size).toBe(54);
-    for (const shape of spiralLayout.all()) {
-      expect(shape.outline).toHaveLength(12);
-      const first = shape.outline[0];
-      const second = shape.outline[1];
-      if (!first || !second) throw new Error("missing outline point");
-      const angle = Math.atan2(second.y - first.y, second.x - first.x);
-      const local = shape.outline.map((point) => {
-        const x = point.x - shape.center.x;
-        const y = point.y - shape.center.y;
-        return { x: x * Math.cos(angle) + y * Math.sin(angle), y: -x * Math.sin(angle) + y * Math.cos(angle) };
-      });
-      const xs = local.map((point) => point.x);
-      const ys = local.map((point) => point.y);
-      expect(Math.max(...xs) - Math.min(...xs)).toBeCloseTo(10);
-      expect(Math.max(...ys) - Math.min(...ys)).toBeCloseTo(10);
-      for (let i = 0; i < shape.outline.length; i++) {
-        const a = shape.outline[i];
-        const b = shape.outline[(i + 1) % shape.outline.length];
-        const c = shape.outline[(i + 2) % shape.outline.length];
-        if (!a || !b || !c) throw new Error("missing outline point");
-        expect((b.x - a.x) * (c.x - b.x) + (b.y - a.y) * (c.y - b.y)).toBeCloseTo(0, 10);
-      }
-    }
-  });
-
-  it("rejects fields outside 0..53", () => {
+    expect(spiralLayout.field(1).center).toEqual({ x: 12, y: 0 });
+    expect(spiralLayout.field(2).center).toEqual({ x: 13, y: -12 });
     expect(() => spiralLayout.field(54)).toThrow(RangeError);
   });
-});
 
-describe("spiralLayout board geometry", () => {
-  it("keeps every pair of rotated tile outlines separated", () => {
-    // SAT on each outline's convex hull is conservative: it includes the
-    // corner notches, without inventing the enclosing square's missing corners.
-    const squares = spiralLayout.all().map((shape) => {
-      const corners = [0, 1, 3, 4, 6, 7, 9, 10].map((index) => {
-        const point = shape.outline[index];
-        if (!point) throw new Error("missing outline point");
-        return point;
-      });
-      const axes = corners.map((point, index) => {
-        const next = corners[(index + 1) % corners.length];
-        if (!next) throw new Error("missing hull point");
-        return { x: -(next.y - point.y), y: next.x - point.x };
-      });
-      return { axes, corners };
-    });
-    for (let n = 0; n < squares.length; n++) {
-      for (let m = n + 1; m < squares.length; m++) {
-        const a = squares[n];
-        const b = squares[m];
-        if (!a || !b) throw new Error("missing square");
-        const separated = [...a.axes, ...b.axes].some((axis) => {
-          const ap = a.corners.map((p) => p.x * axis.x + p.y * axis.y);
-          const bp = b.corners.map((p) => p.x * axis.x + p.y * axis.y);
-          return Math.max(...ap) <= Math.min(...bp) || Math.max(...bp) <= Math.min(...ap);
-        });
-        expect(separated, `fields ${n} and ${m}`).toBe(true);
+  it("follows east, north, west, south runs of 1,1,2,2,3,3 with the smallest valid outward shift", () => {
+    const directions = [{ x: 1, y: 0 }, { x: 0, y: -1 }, { x: -1, y: 0 }, { x: 0, y: 1 }];
+    let field = 1;
+    for (let turn = 0; field < 54; turn++) {
+      const direction = directions[turn % 4];
+      if (!direction) throw new Error("missing direction");
+      for (let step = 0; step < Math.floor(turn / 2) + 1 && field < 54; step++, field++) {
+        const a = spiralLayout.field(field - 1).center;
+        const b = spiralLayout.field(field).center;
+        const dx = b.x - a.x;
+        const dy = b.y - a.y;
+        expect(dx * direction.x + dy * direction.y).toBe(12);
+        const shift = -dx * direction.y + dy * direction.x;
+        expect(shift).toBeGreaterThanOrEqual(0);
+        expect(shift).toBeLessThanOrEqual(2);
+        expect(shift * 2).toBe(Math.round(shift * 2));
+        for (let s = 0; s < shift; s += 0.5) {
+          const candidate = { x: a.x + 12 * direction.x - s * direction.y, y: a.y + 12 * direction.y + s * direction.x };
+          const valid = spiralLayout.all().slice(0, field).every(({ center }, index) => {
+            const x = Math.abs(candidate.x - center.x) - 10;
+            const y = Math.abs(candidate.y - center.y) - 10;
+            const facing = x < 0 || y < 0;
+            const gap = x < 0 ? y : x;
+            return index === field - 1 ? facing && gap === 2
+              : facing ? (gap >= 3 && gap <= 4) || gap >= 10 : x >= 2 || y >= 2;
+          });
+          expect(valid, `field ${field}, smaller shift ${s}`).toBe(false);
+        }
       }
     }
   });
 
-  it("spaces separate turns at least 1.4 times the largest consecutive step", () => {
-    expect(SPIRAL_STEP).toBe(12);
-    expect(SPIRAL_TURN_PITCH).toBe(19);
-    const distance = (n: number, m: number) => {
-      const a = spiralLayout.field(n).center;
-      const b = spiralLayout.field(m).center;
-      return Math.hypot(a.x - b.x, a.y - b.y);
-    };
-    const largestStep = Math.max(...Array.from({ length: 53 }, (_, n) => distance(n, n + 1)));
-    for (let n = 8; n < 54; n++) {
-      const otherDistances = spiralLayout.all()
-        .filter((shape) => Math.abs(shape.field - n) >= 4)
-        .map((shape) => distance(n, shape.field));
-      expect(Math.min(...otherDistances)).toBeGreaterThanOrEqual(1.4 * largestStep);
+  it("gives every field four axis-aligned corners with side 10", () => {
+    for (const { center, outline } of spiralLayout.all()) {
+      expect(outline).toEqual([
+        { x: center.x - 5, y: center.y - 5 },
+        { x: center.x + 5, y: center.y - 5 },
+        { x: center.x + 5, y: center.y + 5 },
+        { x: center.x - 5, y: center.y + 5 },
+      ]);
     }
   });
 
-  it("crops the viewBox to the field outlines plus the margin on all sides", () => {
-    const pts = spiralLayout.all().flatMap((s) => s.outline);
-    const xs = pts.map((p) => p.x);
-    const ys = pts.map((p) => p.y);
+  it("satisfies the consecutive, facing and diagonal gap rules for every pair", () => {
+    for (let n = 0; n < 54; n++) {
+      for (let m = n + 1; m < 54; m++) {
+        const a = spiralLayout.field(n).center;
+        const b = spiralLayout.field(m).center;
+        const xGap = Math.abs(a.x - b.x) - 10;
+        const yGap = Math.abs(a.y - b.y) - 10;
+        const facing = xGap < 0 || yGap < 0;
+        const gap = xGap < 0 ? yGap : xGap;
+        if (m === n + 1) {
+          expect(facing, `${n},${m} face`).toBe(true);
+          expect(gap, `${n},${m} consecutive gap`).toBe(2);
+        } else if (facing) {
+          expect((gap >= 3 && gap <= 4) || gap >= 10, `${n},${m} facing gap ${gap}`).toBe(true);
+        } else {
+          expect(xGap >= 2 || yGap >= 2, `${n},${m} diagonal gaps`).toBe(true);
+        }
+      }
+    }
+  });
+
+  it("crops to outline bounds plus a uniform margin of at most 4", () => {
+    const points = spiralLayout.all().flatMap(({ outline }) => outline);
+    const xs = points.map(({ x }) => x);
+    const ys = points.map(({ y }) => y);
     const vb = spiralLayout.viewBox;
-    expect(vb.x).toBe(Math.min(...xs) - SPIRAL_MARGIN);
-    expect(vb.y).toBe(Math.min(...ys) - SPIRAL_MARGIN);
-    expect(vb.x + vb.w).toBeCloseTo(Math.max(...xs) + SPIRAL_MARGIN, 12);
-    expect(vb.y + vb.h).toBeCloseTo(Math.max(...ys) + SPIRAL_MARGIN, 12);
+    expect(SPIRAL_MARGIN).toBeGreaterThan(0);
+    expect(SPIRAL_MARGIN).toBeLessThanOrEqual(4);
+    expect(vb).toEqual({
+      x: Math.min(...xs) - SPIRAL_MARGIN,
+      y: Math.min(...ys) - SPIRAL_MARGIN,
+      w: Math.max(...xs) - Math.min(...xs) + 2 * SPIRAL_MARGIN,
+      h: Math.max(...ys) - Math.min(...ys) + 2 * SPIRAL_MARGIN,
+    });
+    expect(vb.w - 2 * SPIRAL_MARGIN).toBe(100);
+    expect(vb.h - 2 * SPIRAL_MARGIN).toBe(88);
   });
 });
