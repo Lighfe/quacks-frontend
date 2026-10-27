@@ -10,16 +10,19 @@ export const PALETTE: Record<string, string> = {
   r: "var(--chip-red)",
   p: "var(--primary)",
   y: "var(--chip-yellow)",
+  v: "var(--pot-points)",
+  n: "var(--chip-green)",
 };
 
 // Cut gem: narrow flat table, widest girdle row, tapering to a point. 5 x 4 px.
 export const GEM: PixelGrid = [".rrr.", "rrwrr", ".rwr.", "..r.."];
 // Platformer coin with a shine and a slot. 5 x 5 px.
 export const COIN: PixelGrid = [".yyy.", "ywyay", "ywyay", "yyyay", ".yyy."];
-// Five-point star. 5 x 5 px.
-export const STAR: PixelGrid = ["..y..", ".yyy.", "yyyyy", ".yyy.", "y...y"];
-export const FLASK_FULL: PixelGrid = [".ggg.", "..g..", ".gbg.", "gbbbg", "gbwbg", "gbbbg", ".ggg."];
-export const FLASK_EMPTY: PixelGrid = [".ggg.", "..g..", ".g.g.", "g...g", "g...g", "g...g", ".ggg."];
+// Purple five-point star. 7 x 7 px.
+export const STAR: PixelGrid = ["...v...", "...v...", "vvvvvvv", ".vvvvv.", "..vvv..", ".vv.vv.", "vv...vv"];
+// Green flasks: liquid-filled and empty glass. 5 x 7 px.
+export const FLASK_FULL: PixelGrid = [".nnn.", "..n..", ".nnn.", "nnnnn", "nwnnn", "nnnnn", ".nnn."];
+export const FLASK_EMPTY: PixelGrid = [".nnn.", "..n..", ".n.n.", "n...n", "nw..n", "n...n", ".nnn."];
 
 export function PixelIcon({
   grid, x, y, unit, marker, field, label, ...rest

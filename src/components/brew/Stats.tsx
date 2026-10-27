@@ -17,11 +17,13 @@ export function Stats({ seat }: { seat: Seat }) {
             <span className="font-pixel text-[10px] text-foreground">{it.value}</span>
           </div>
         ))}
-        <PixelSymbol
-          grid={seat.flask_full ? FLASK_FULL : FLASK_EMPTY}
-          unit={4}
-          label={seat.flask_full ? "flask full" : "flask empty"}
-        />
+        {seat.flask_full ? (
+          <PixelSymbol grid={FLASK_FULL} unit={4} label="flask full" />
+        ) : (
+          <span data-flask-tilt className="inline-block" style={{ transform: "rotate(12deg)" }}>
+            <PixelSymbol grid={FLASK_EMPTY} unit={4} label="flask empty" />
+          </span>
+        )}
       </div>
     </PixelFrame>
   );

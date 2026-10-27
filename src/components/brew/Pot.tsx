@@ -226,7 +226,7 @@ export function Pot({
                 >
                   {litField.money}
                 </text>
-                 <PixelIcon grid={STAR} x={shape.center.x - 4.7} y={shape.center.y + (corner ? 2.85 : 1.2)} unit={0.3} label="points" />
+                 <PixelIcon grid={STAR} x={shape.center.x - 4.7} y={shape.center.y + (corner ? 2.85 : 1.2)} unit={0.22} label="points" />
                 <text
                    x={shape.center.x - 2.9}
                   y={corner ? shape.center.y + 3.6 : shape.center.y + 2.2}
