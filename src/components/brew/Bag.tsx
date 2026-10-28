@@ -1,3 +1,5 @@
+import { useEffect, useId, useRef, useState } from "react";
+
 import type { ChipType } from "@/lib/game-api";
 import { ChipToken } from "./Chip";
 
@@ -48,23 +50,19 @@ function SackNeck({ unit }: { unit: number }) {
   );
 }
 
-export function Bag({
-  bag,
-  chips,
-  small = false,
+function SackContents({
+  shown,
+  byId,
+  small,
 }: {
-  bag: Record<string, number>;
-  chips: ChipType[];
-  small?: boolean;
+  shown: [string, number][];
+  byId: Map<string, ChipType>;
+  small: boolean;
 }) {
-  const byId = new Map(chips.map((c) => [c.id, c]));
-  const shown = Object.entries(bag).filter(([id, n]) => n > 0 && byId.has(id));
   return (
-    <div data-testid="bag-sack" aria-label="Bag" className="sack-outline flex w-full flex-col items-center px-1 py-1">
+    <div className="sack-outline flex w-full flex-col items-center px-1 py-1">
       <SackNeck unit={small ? 3 : 4} />
-      <div
-        className={`sack-body -mt-1 w-full ${small ? "px-6 pb-6 pt-11" : "px-9 pb-9 pt-14"}`}
-      >
+      <div className={`sack-body -mt-1 w-full ${small ? "px-6 pb-6 pt-11" : "px-9 pb-9 pt-14"}`}>
         <div className="flex flex-wrap items-center justify-center gap-x-3 gap-y-2">
           {shown.length === 0 ? (
             <span className="text-muted-foreground">empty</span>
@@ -81,6 +79,93 @@ export function Bag({
           )}
         </div>
       </div>
+    </div>
+  );
+}
+
+// Small always-visible bag; hover, click/tap or Enter/Space opens the big sack.
+export function Bag({
+  bag,
+  chips,
+  small = false,
+}: {
+  bag: Record<string, number>;
+  chips: ChipType[];
+  small?: boolean;
+}) {
+  const [open, setOpen] = useState(false);
+  const hoverOpened = useRef(false);
+  const popId = useId();
+  const byId = new Map(chips.map((c) => [c.id, c]));
+  const shown = Object.entries(bag).filter(([id, n]) => n > 0 && byId.has(id));
+  const total = shown.reduce((sum, [, n]) => sum + n, 0);
+
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setOpen(false);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [open]);
+
+  const toggle = () => {
+    if (open && hoverOpened.current) {
+      hoverOpened.current = false; // pin a hover-opened sack
+      return;
+    }
+    hoverOpened.current = false;
+    setOpen((o) => !o);
+  };
+
+  return (
+    <div
+      className="relative w-full"
+      onPointerEnter={(e) => {
+        if (e.pointerType === "mouse" && !open) {
+          hoverOpened.current = true;
+          setOpen(true);
+        }
+      }}
+      onPointerLeave={(e) => {
+        if (e.pointerType === "mouse" && hoverOpened.current) {
+          hoverOpened.current = false;
+          setOpen(false);
+        }
+      }}
+    >
+      <button
+        type="button"
+        data-testid="bag-sack"
+        aria-label="Bag"
+        aria-expanded={open}
+        aria-controls={popId}
+        onClick={toggle}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            toggle();
+          } else if (e.key === "Escape") {
+            setOpen(false);
+          }
+        }}
+        className="sack-outline mx-auto flex flex-col items-center px-1 py-1 focus-visible:outline-2 focus-visible:outline-ring"
+      >
+        <SackNeck unit={2} />
+        <span className="sack-body -mt-0.5 flex w-20 items-end justify-center pb-2 pt-6">
+          <span className="font-pixel text-[10px] text-sack-ink">{total}</span>
+        </span>
+      </button>
+      {open ? (
+        <div
+          id={popId}
+          data-testid="bag-popup"
+          className="absolute left-0 top-full z-40 mt-2 w-full min-w-0 max-w-[calc(100vw-2rem)] lg:w-80 lg:max-w-none"
+          style={{ right: "auto" }}
+        >
+          <SackContents shown={shown} byId={byId} small={small} />
+        </div>
+      ) : null}
     </div>
   );
 }

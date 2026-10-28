@@ -77,7 +77,7 @@ export function BrewScreen({
         <RoundHeader game={view.game} />
         <div className="flex flex-col gap-4 lg:flex-row">
           <div ref={ownPanelRef} className="flex flex-1 flex-col gap-4">
-            <PixelFrame title={`${youSeat.id} — ${youSeat.status}`}>
+            <PixelFrame>
               <div className="flex flex-col gap-4 md:flex-row">
                 <Pot
                   pot={youSeat.pot}
@@ -87,9 +87,9 @@ export function BrewScreen({
                   ratTail={youSeat.rat_tail}
                   newOrders={freshOrders.get(youSeat.id)}
                   exploded={freshExplosions.has(youSeat.id)}
-                  className="w-full max-w-[420px] shrink-0"
+                  className="w-full min-w-0 md:flex-1"
                 />
-                <div className="flex min-w-52 flex-1 flex-col gap-3">
+                <div className="flex w-full shrink-0 flex-col gap-3 md:w-56">
                   <WhiteMeter
                     whiteTotal={youSeat.white_total}
                     limit={view.game.explosion_limit}
@@ -119,7 +119,7 @@ export function BrewScreen({
               />
             ) : null}
           </div>
-          <div className="flex w-full flex-col gap-4 lg:w-80">
+          <div className="flex w-full flex-col gap-4 lg:w-64">
             {others.map((s) => (
               <OpponentPanel
                 key={s.id}

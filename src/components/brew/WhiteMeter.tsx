@@ -1,13 +1,12 @@
-import { PixelFrame } from "./PixelFrame";
 import { cn } from "@/lib/utils";
 
 export function WhiteMeter({ whiteTotal, limit }: { whiteTotal: number; limit: number }) {
   const over = whiteTotal > limit;
   const pips = Math.max(limit, whiteTotal);
   return (
-    <PixelFrame title="White chips">
+    <div aria-label="White chips">
       <div className="flex items-center gap-2">
-        <div className="flex gap-1">
+        <div className="flex flex-wrap gap-1">
           {Array.from({ length: pips }, (_, i) => (
             <span
               key={i}
@@ -22,6 +21,6 @@ export function WhiteMeter({ whiteTotal, limit }: { whiteTotal: number; limit: n
           {whiteTotal}/{limit}
         </span>
       </div>
-    </PixelFrame>
+    </div>
   );
 }
