@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 
 import type { PotEntry, View } from "@/lib/game-api";
 import { newPotOrders } from "@/lib/brew-view";
@@ -32,7 +32,7 @@ export function BrewScreen({
   error: string | null;
   hideActions?: boolean;
   roll?: ActiveRoll | null;
-  cleanupPot?: PotEntry[];
+  cleanupPot?: PotEntry[] | undefined;
   onCleanupDone?: () => void;
 }) {
   // Animation tracking: chips with an order not seen before drop in; a seat
@@ -40,6 +40,8 @@ export function BrewScreen({
   // chips can also leave the pot.
   const seenOrders = useRef(new Map<string, Set<number>>());
   const ownPanelRef = useRef<HTMLDivElement>(null);
+  const [panelReady, setPanelReady] = useState(false);
+  useLayoutEffect(() => setPanelReady(true), []);
   const startedFlight = useRef<View | null>(null);
   const [flightEntry, setFlightEntry] = useState<PotEntry | null>(null);
   const prevStatus = useRef(new Map<string, string>());
@@ -121,7 +123,7 @@ export function BrewScreen({
             />
             <ActionBar legal={view.legal} error={error} onAction={onAction} disabled={pending} />
             </>)}
-            {cleanupPot ? <ReturnFlights pot={cleanupPot} scope={ownPanelRef} onDone={onCleanupDone} /> : null}
+            {cleanupPot && panelReady ? <ReturnFlights pot={cleanupPot} scope={ownPanelRef} onDone={onCleanupDone} /> : null}
             {flightEntry && !cleanupPot ? (
               <DrawFlight
                 key={flightEntry.order}
