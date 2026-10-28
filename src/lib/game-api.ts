@@ -43,7 +43,7 @@ export interface Seat {
 }
 
 export interface RoundCard {
-  id: number;
+  id: number | string;
   effect: string;
   text: string;
 }
@@ -128,7 +128,7 @@ export interface BackendConfig {
   mock?: StaticMock;
 }
 
-export const STATIC_MOCKS = ["playtest", "playtest-zero", "playtest-small-bag", "shop", "ruby"] as const;
+export const STATIC_MOCKS = ["playtest", "playtest-zero", "playtest-small-bag", "shop", "ruby", "card", "card-choice"] as const;
 export type StaticMock = (typeof STATIC_MOCKS)[number];
 
 export const DEFAULT_API_BASE = "http://localhost:8000";
@@ -207,6 +207,8 @@ export async function createGame(baseUrl: string, body: CreateGameBody): Promise
 }
 
 export function getView(backend: BackendConfig, seat: string): Promise<View> {
+  if (backend.kind === "mock" && backend.mock === "card") return Promise.resolve(cardView);
+  if (backend.kind === "mock" && backend.mock === "card-choice") return Promise.resolve(cardChoiceView);
   if (backend.kind === "mock" && backend.mock === "shop") return Promise.resolve(shopView);
   if (backend.kind === "mock" && backend.mock === "ruby") return Promise.resolve(rubyView);
   if (backend.kind === "mock" && backend.mock === "playtest") return Promise.resolve(playtestView);
@@ -222,6 +224,8 @@ export function sendAction(
   action: string,
   revision: number,
 ): Promise<View> {
+  if (backend.kind === "mock" && backend.mock === "card") return Promise.resolve(cardView);
+  if (backend.kind === "mock" && backend.mock === "card-choice") return Promise.resolve(cardChoiceView);
   if (backend.kind === "mock" && backend.mock === "shop") return Promise.resolve(shopView);
   if (backend.kind === "mock" && backend.mock === "ruby") return Promise.resolve(rubyView);
   if (backend.kind === "mock" && backend.mock === "playtest") return Promise.resolve(playtestView);
@@ -552,5 +556,32 @@ const rubyView: View = {
     { id: "ruby_drop", label: "ruby drop: 2 rubies, droplet +1" },
     { id: "refill_flask", label: "refill flask: 2 rubies" },
     { id: "done", label: "done" },
+  ],
+};
+
+// Static round card fixtures (mock data only).
+const cardView: View = {
+  ...playtestView,
+  game: {
+    ...playtestView.game, round: 2,
+    card: {
+      id: "card_4", effect: "explosion_limit_plus_2",
+      text: "The cellar air is calm tonight: the explosion limit is raised by 2 for every player this round. White chips still count towards the limit as usual.",
+    },
+  },
+  seats: playtestView.seats.map((s) => ({ ...s, pot: [] })),
+};
+const cardChoiceView: View = {
+  ...cardView,
+  game: {
+    ...cardView.game, phase: "card_choice",
+    card: {
+      id: "card_9", effect: "upgrade_chip",
+      text: "Each player may upgrade one chip in their bag to the next higher value of the same colour. Choose the chip now; the new chip goes straight into your bag.",
+    },
+  },
+  legal: [
+    { id: "card_upgrade:green_1", label: "Upgrade green 1 to green 2" },
+    { id: "card_upgrade:orange_1", label: "Upgrade orange 1 to orange 6" },
   ],
 };
