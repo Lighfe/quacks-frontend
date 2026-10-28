@@ -13,11 +13,6 @@ export function RoundHeader({ game }: { game: GameInfo }) {
         <span className="font-pixel text-[10px] text-muted-foreground">
           Explosion limit {game.explosion_limit}
         </span>
-        {game.card ? (
-          <span className="text-foreground">
-            Card {game.card.id}: {game.card.text}
-          </span>
-        ) : null}
         {game.winner ? (
           <span className="font-pixel text-[10px] text-accent">Winner: {game.winner}</span>
         ) : null}

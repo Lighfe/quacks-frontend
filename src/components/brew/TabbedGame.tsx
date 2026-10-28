@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 import type { View } from "@/lib/game-api";
 import { cn } from "@/lib/utils";
@@ -7,8 +7,10 @@ import { IngredientsBoard } from "./IngredientsBoard";
 import { PhaseScreen } from "./PhaseScreen";
 import { PixelSymbol, type PixelGrid } from "./pixel-icons";
 import { ShopDialog } from "./ShopDialog";
+import { RoundCardScroll } from "./RoundCardScroll";
 
 const POT_ICON: PixelGrid = ["a.....a", "ggggggg", ".ggggg.", "gkkkkkg", "gkkkkkg", ".gkkkg.", "..g.g.."];
+const SCROLL_ICON: PixelGrid = ["kkkkkkk", ".wwwww.", ".wkkkw.", ".wwwww.", ".wkkkw.", ".wwwww.", "kkkkkkk"];
 const BOOK_ICON: PixelGrid = [".ppppp.", "pwwwwwp", "pwgggwp", "pwwwwwp", "pwgggwp", "pwwwwwp", ".ppppp."];
 
 type Tab = "cauldron" | "ingredients";
@@ -35,6 +37,31 @@ export function TabbedGame({
     prevPhase.current = phase;
   }, [phase]);
 
+  // Round card scroll: opens once per (round, card id); a choice keeps it open
+  // until the next view; all text and labels come from the view.
+  const card = view.game.winner ? null : view.game.card;
+  const cardKey = card ? `${view.game.round}:${card.id}` : null;
+  const [dismissedKey, setDismissedKey] = useState<string | null>(null);
+  const [reading, setReading] = useState(false);
+  const choosing = !!card && phase === "card_choice" && view.legal.length > 0;
+  const scrollMode = !card
+    ? null
+    : choosing
+      ? "choice"
+      : cardKey !== dismissedKey
+        ? "notice"
+        : reading
+          ? "read"
+          : null;
+  const closeScroll = useCallback(() => {
+    setDismissedKey(cardKey);
+    setReading(false);
+  }, [cardKey]);
+  const choose = (id: string) => {
+    setDismissedKey(cardKey);
+    onAction(id);
+  };
+
   const brewing = phase === "brew" || phase === "brewing";
   const shopLike = phase === "shop" || phase === "ruby";
 
@@ -56,9 +83,19 @@ export function TabbedGame({
 
   return (
     <main className="flex min-h-screen flex-col bg-background text-foreground">
-      <div role="tablist" className="mx-auto flex max-w-6xl gap-2 px-4 pt-4">
+      <div role="tablist" className="mx-auto flex w-full max-w-6xl flex-wrap gap-2 px-4 pt-4">
         {tabBtn("cauldron", "Cauldron", POT_ICON)}
         {tabBtn("ingredients", "Ingredients", BOOK_ICON)}
+        {card ? (
+          <button
+            type="button"
+            aria-label="Read round card"
+            onClick={() => setReading(true)}
+            className="pixel-border ml-auto flex items-center bg-card px-3 py-2"
+          >
+            <PixelSymbol grid={SCROLL_ICON} unit={3} label="" />
+          </button>
+        ) : null}
       </div>
       <div className="min-h-0 flex-1 pb-24">
         {tab === "ingredients" ? (
@@ -71,6 +108,17 @@ export function TabbedGame({
           <PhaseScreen view={view} shownSeat={shownSeat} onAction={onAction} pending={pending} error={error} />
         )}
       </div>
+      {card && scrollMode ? (
+        <RoundCardScroll
+          text={card.text}
+          mode={scrollMode}
+          choices={scrollMode === "choice" ? view.legal : []}
+          pending={pending}
+          error={error}
+          onChoose={choose}
+          onClose={closeScroll}
+        />
+      ) : null}
       {shopLike ? (
         <div className="sticky bottom-0 z-20 bg-background mx-auto w-full max-w-6xl px-4 pb-4">
           <ShopDialog view={view} onAction={onAction} pending={pending} error={error} />
