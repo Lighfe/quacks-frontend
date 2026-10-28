@@ -72,38 +72,99 @@ function noteShape(v: number) {
     const x = Math.floor(r() * W), y = Math.floor(r() * H);
     if (inside(x, y)) specks.push([x, y]);
   }
-  return { paper, edge, stains, specks };
+  // Singed rim: a run of edge cells burnt darker.
+  const start = Math.floor(r() * edge.length);
+  const burnt = edge.filter((_, i) => (i - start + edge.length) % edge.length < 10 + v);
+  return { paper, edge, stains, specks, burnt };
 }
 
+// o = outer rim, a = dark wax edge, b = wax, c = embossed mark, d = shadow, h = highlight.
 const WAX: string[] = [
-  "..aaaa..",
-  ".abbbba.",
-  "abhbbbba",
-  "abbcccba",
-  "abbcccba",
-  "abbbbbda",
-  ".adbbda.",
-  "..aaaa.a",
+  "...oooo.....",
+  "..oaaaaoo...",
+  ".oabbbbaaoo.",
+  "oabhhbbbbbao",
+  "oabhbccbbbao",
+  "oabbcbbcbdao",
+  "oabbcbbcbdao",
+  ".oabbccbbdao",
+  ".oabbbbbddao",
+  "..oadbbddao.",
+  "...oaadaoo..",
+  "....oado....",
+  ".....oao....",
+  "......o.....",
 ];
-const PIN: string[] = ["..aa..", ".ahba.", ".abba.", "..aa..", "..kk..", "...k.."];
+const PIN: string[] = [
+  "..oooo..",
+  ".oaaaao.",
+  "oahhbbao",
+  "oahbbbdo",
+  "oabbbddo",
+  ".oaddao.",
+  "..oooo..",
+  "...kk...",
+  "...kk...",
+  "....k...",
+];
+const DARK: ChipColour[] = ["black", "purple"];
 
 function Seal({ colour, kind }: { colour: ChipColour; kind: "wax" | "pin" }) {
   const c = `var(--chip-${colour})`;
+  const dark = DARK.includes(colour);
   const fill: Record<string, string> = {
-    a: `color-mix(in oklch, ${c} 55%, var(--background))`,
+    o: dark ? "var(--muted-foreground)" : "var(--sack-outline)",
+    a: `color-mix(in oklch, ${c} 60%, var(--background))`,
     b: c,
-    c: `color-mix(in oklch, ${c} 75%, var(--background))`,
-    d: `color-mix(in oklch, ${c} 70%, var(--background))`,
-    h: `color-mix(in oklch, ${c} 45%, var(--foreground))`,
+    c: `color-mix(in oklch, ${c} 65%, var(--background))`,
+    d: `color-mix(in oklch, ${c} 78%, var(--background))`,
+    h: `color-mix(in oklch, ${c} ${dark ? 40 : 50}%, var(--foreground))`,
     k: "var(--sack-outline)",
   };
   const grid = kind === "wax" ? WAX : PIN;
-  const u = kind === "wax" ? 3 : 3;
+  const u = 3;
   return (
     <svg aria-hidden width={grid[0]!.length * u} height={grid.length * u} shapeRendering="crispEdges" className="block">
       {grid.flatMap((row, j) =>
         Array.from(row).map((ch, i) =>
           fill[ch] ? <rect key={`${i}-${j}`} x={i * u} y={j * u} width={u} height={u} fill={fill[ch]} /> : null,
+        ),
+      )}
+    </svg>
+  );
+}
+
+// Faded ink sigils: moon, eye, rune, pentacle-ish star, spiral, triangle, cross-rune, drop.
+const SIGILS: string[][] = [
+  [".xxx.", "xx...", "x....", "xx...", ".xxx."],
+  [".xxx.", "x.x.x", "xx.xx", "x.x.x", ".xxx."],
+  ["x...x", ".x.x.", "..x..", "..x..", "..x.."],
+  ["..x..", "xxxxx", ".x.x.", "x.x.x", "x...x"],
+  ["xxxxx", "x...x", "x.x.x", "x.xxx", "x...."],
+  ["..x..", ".x.x.", ".xxx.", "x...x", "xxxxx"],
+  ["x.x.x", ".xxx.", "xx.xx", ".xxx.", "x.x.x"],
+  ["..x..", ".x.x.", "x.x.x", "x...x", ".xxx."],
+];
+const SIGIL_PLACE: [string, string][] = [
+  ["right", "bottom"], ["left", "bottom"], ["right", "bottom"], ["left", "bottom"],
+  ["right", "bottom"], ["left", "bottom"], ["right", "bottom"], ["right", "bottom"],
+];
+
+function Sigil({ v }: { v: number }) {
+  const g = SIGILS[v]!;
+  const [h, vt] = SIGIL_PLACE[v]!;
+  return (
+    <svg
+      aria-hidden
+      width={15}
+      height={15}
+      shapeRendering="crispEdges"
+      className="absolute opacity-30"
+      style={{ [h]: "14px", [vt]: "10px" }}
+    >
+      {g.flatMap((row, j) =>
+        Array.from(row).map((ch, i) =>
+          ch === "x" ? <rect key={`${i}-${j}`} x={i * 3} y={j * 3} width={3} height={3} fill="var(--parchment-ink)" /> : null,
         ),
       )}
     </svg>
@@ -122,7 +183,7 @@ function Note({ ing }: { ing: Ingredient }) {
       data-testid={`note-${ing.colour}`}
       data-faded={faded ? "true" : "false"}
       data-variant={`v${v}`}
-      className={cn("relative pt-3", faded && "opacity-40 grayscale")}
+      className={cn("relative pt-5", faded && "opacity-40 grayscale")}
       style={{ transform: `rotate(${TILTS[v]}deg)` }}
     >
       <div className="relative px-5 pb-6 pt-6 text-parchment-ink">
@@ -138,13 +199,15 @@ function Note({ ing }: { ing: Ingredient }) {
           {rects(shape.edge, "var(--parchment-shade)")}
           {rects(shape.stains, "var(--parchment-shade)", 0.55)}
           {rects(shape.specks, "var(--sack-shade)", 0.7)}
+          {rects(shape.burnt, "var(--sack-outline)", 0.8)}
         </svg>
         <span
           className="absolute z-10 -translate-x-1/2"
-          style={{ left: `${(sx / W) * 100}%`, top: `${sy * 3 - 10}px` }}
+          style={{ left: `${(sx / W) * 100}%`, top: `${sy * 3 - 18}px` }}
         >
           <Seal colour={ing.colour} kind={kind} />
         </span>
+        <Sigil v={v} />
         <div className="relative grid grid-cols-3 gap-2">
           {ing.chips.map((c) => (
             <div key={c.chip} className="flex flex-col items-center gap-1">
