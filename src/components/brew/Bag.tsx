@@ -1,4 +1,5 @@
-import { useEffect, useId, useRef, useState } from "react";
+import { useEffect, useId, useLayoutEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 
 import type { ChipType } from "@/lib/game-api";
 import { ChipToken } from "./Chip";
@@ -100,6 +101,75 @@ export function Bag({
   const shown = Object.entries(bag).filter(([id, n]) => n > 0 && byId.has(id));
   const total = shown.reduce((sum, [, n]) => sum + n, 0);
 
+  const wrapRef = useRef<HTMLDivElement>(null);
+  const popRef = useRef<HTMLDivElement>(null);
+  const closeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [pos, setPos] = useState<{ left: number; top: number; width: number } | null>(null);
+
+  // Fixed-position popup in a portal: never clipped by panel frames, always on top.
+  // Below the bag when it fits, else above, else clamped into the viewport.
+  useLayoutEffect(() => {
+    if (!open) {
+      setPos(null);
+      return;
+    }
+    const place = () => {
+      const wrap = wrapRef.current;
+      if (!wrap) return;
+      const r = wrap.getBoundingClientRect();
+      const vw = window.innerWidth;
+      const vh = window.innerHeight;
+      const m = 8;
+      const width = Math.min(r.width, vw - 2 * m);
+      const left = Math.min(Math.max(r.left, m), vw - width - m);
+      const h = popRef.current?.getBoundingClientRect().height ?? 0;
+      let top = r.bottom + 8;
+      if (top + h > vh - m) {
+        const above = r.top - 8 - h;
+        top = above >= m ? above : Math.max(m, vh - m - h);
+      }
+      setPos({ left, top, width });
+    };
+    place();
+    const raf = requestAnimationFrame(place);
+    window.addEventListener("resize", place);
+    window.addEventListener("scroll", place, true);
+    return () => {
+      cancelAnimationFrame(raf);
+      window.removeEventListener("resize", place);
+      window.removeEventListener("scroll", place, true);
+    };
+  }, [open]);
+
+  useEffect(() => () => {
+    if (closeTimer.current) clearTimeout(closeTimer.current);
+  }, []);
+
+  const cancelClose = () => {
+    if (closeTimer.current) clearTimeout(closeTimer.current);
+    closeTimer.current = null;
+  };
+  const onEnter = (e: React.PointerEvent) => {
+    if (e.pointerType !== "mouse") return;
+    cancelClose();
+    if (!open) {
+      hoverOpened.current = true;
+      setOpen(true);
+    }
+  };
+  // Short grace period so the pointer can cross from the bag onto the popup.
+  const onLeave = (e: React.PointerEvent) => {
+    if (e.pointerType !== "mouse" || !hoverOpened.current) return;
+    cancelClose();
+    closeTimer.current = setTimeout(() => {
+      closeTimer.current = null;
+      if (hoverOpened.current) {
+        hoverOpened.current = false;
+        setOpen(false);
+      }
+    }, 150);
+  };
+
   useEffect(() => {
     if (!open) return;
     const onKey = (e: KeyboardEvent) => {
@@ -122,19 +192,10 @@ export function Bag({
 
   return (
     <div
+      ref={wrapRef}
       className="relative w-full"
-      onPointerEnter={(e) => {
-        if (e.pointerType === "mouse" && !open) {
-          hoverOpened.current = true;
-          setOpen(true);
-        }
-      }}
-      onPointerLeave={(e) => {
-        if (e.pointerType === "mouse" && hoverOpened.current) {
-          hoverOpened.current = false;
-          setOpen(false);
-        }
-      }}
+      onPointerEnter={onEnter}
+      onPointerLeave={onLeave}
     >
       <button
         type="button"
@@ -158,15 +219,28 @@ export function Bag({
           <span className="font-pixel text-[10px] text-sack-ink">{total}</span>
         </span>
       </button>
-      {open ? (
-        <div
-          id={popId}
-          data-testid="bag-popup"
-          className="absolute left-0 top-full z-40 mt-2 w-full min-w-0 max-w-[calc(100vw-2rem)]"
-        >
-          <SackContents shown={shown} byId={byId} small={small} />
-        </div>
-      ) : null}
+      {open && typeof document !== "undefined"
+        ? createPortal(
+            <div
+              ref={popRef}
+              id={popId}
+              data-testid="bag-popup"
+              onPointerEnter={onEnter}
+              onPointerLeave={onLeave}
+              style={{
+                position: "fixed",
+                left: pos?.left ?? 0,
+                top: pos?.top ?? 0,
+                width: pos?.width,
+                visibility: pos ? "visible" : "hidden",
+              }}
+              className="z-[100] max-w-[calc(100vw-1rem)]"
+            >
+              <SackContents shown={shown} byId={byId} small={small} />
+            </div>,
+            document.body,
+          )
+        : null}
     </div>
   );
 }
