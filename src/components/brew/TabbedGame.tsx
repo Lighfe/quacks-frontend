@@ -10,12 +10,15 @@ import { ShopDialog } from "./ShopDialog";
 import { RoundCardScroll } from "./RoundCardScroll";
 import { useBonusRoll, type PlayedRounds } from "./DieRoll";
 import { EndScreen } from "./EndScreen";
+import { PointBoard } from "./PointBoard";
 
 const POT_ICON: PixelGrid = ["a.....a", "ggggggg", ".ggggg.", "gkkkkkg", "gkkkkkg", ".gkkkg.", "..g.g.."];
 const SCROLL_ICON: PixelGrid = ["kkkkkkk", ".wwwww.", ".wkkkw.", ".wwwww.", ".wkkkw.", ".wwwww.", "kkkkkkk"];
 const BOOK_ICON: PixelGrid = [".ppppp.", "pwwwwwp", "pwgggwp", "pwwwwwp", "pwgggwp", "pwwwwwp", ".ppppp."];
 
-type Tab = "cauldron" | "ingredients";
+const BOARD_ICON: PixelGrid = ["wwwwwww", "w.....w", "w.r.b.w", "w.....w", "w.....w", "w.....w", "wwwwwww"];
+
+type Tab = "cauldron" | "ingredients" | "board";
 
 // Two tabs over every phase; the shop phase opens Ingredients by itself.
 export function TabbedGame({
@@ -102,6 +105,7 @@ export function TabbedGame({
       <div role="tablist" className="mx-auto flex w-full max-w-6xl flex-wrap gap-2 px-4 pt-4">
         {tabBtn("cauldron", "Cauldron", POT_ICON)}
         {tabBtn("ingredients", "Ingredients", BOOK_ICON)}
+        {tabBtn("board", "Point board", BOARD_ICON)}
         {card ? (
           <button
             type="button"
@@ -114,7 +118,9 @@ export function TabbedGame({
         ) : null}
       </div>
       <div className="min-h-0 flex-1 pb-24">
-        {tab === "ingredients" ? (
+        {tab === "board" ? (
+          <PointBoard view={view} />
+        ) : tab === "ingredients" ? (
           <div className="mx-auto max-w-6xl p-4">
             <IngredientsBoard ingredients={view.ingredients ?? []} />
           </div>
