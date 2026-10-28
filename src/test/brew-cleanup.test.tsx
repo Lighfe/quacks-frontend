@@ -38,7 +38,10 @@ describe("bag", () => {
     render(<Bag bag={{ white_1: 3 }} chips={chips} />);
     const trigger = screen.getByTestId("bag-sack");
     act(() => {
-      fireEvent.pointerEnter(trigger, { pointerType: "mouse" });
+      // jsdom has no PointerEvent, so hand the event its pointerType by hand.
+      const enter = new Event("pointerover", { bubbles: true });
+      Object.assign(enter, { pointerType: "mouse" });
+      trigger.dispatchEvent(enter);
       fireEvent.click(trigger);
     });
     expect(trigger).toHaveAttribute("aria-expanded", "true");
