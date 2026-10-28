@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { cleanup, fireEvent, render, screen } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen, within } from "@testing-library/react";
 
 import { TabbedGame } from "@/components/brew/TabbedGame";
 import { backendFromSearch, getView, type View } from "@/lib/game-api";
@@ -41,10 +41,10 @@ describe("round card scroll", () => {
     const { onAction, rerender } = setup(v);
     fireEvent.keyDown(window, { key: "Escape" });
     expect(screen.queryByRole("button", { name: "Continue" })).toBeNull();
-    fireEvent.click(screen.getByRole("button", { name: "Upgrade green 1 to green 2" }));
+    fireEvent.click(within(screen.getByTestId("card-scroll")).getByRole("button", { name: "Upgrade green 1 to green 2" }));
     expect(onAction).toHaveBeenCalledWith("card_upgrade:green_1");
     rerender(v, "The action could not be sent.");
-    const again = screen.getByRole("button", { name: "Upgrade orange 1 to orange 6" });
+    const again = within(screen.getByTestId("card-scroll")).getByRole("button", { name: "Upgrade orange 1 to orange 6" });
     expect(again).not.toBeDisabled();
     fireEvent.click(again);
     expect(onAction).toHaveBeenLastCalledWith("card_upgrade:orange_1");
