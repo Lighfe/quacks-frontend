@@ -153,7 +153,6 @@ export function GameScreen({
       </main>
     );
   }
-  const phase = view.game.phase;
   return (
     <TabbedGame view={view} shownSeat={shownSeat} onAction={act} pending={pending} error={notice} onNewGame={onNewGame} />
   );
