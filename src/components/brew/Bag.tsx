@@ -160,8 +160,7 @@ export function Bag({
         <div
           id={popId}
           data-testid="bag-popup"
-          className="absolute left-0 top-full z-40 mt-2 w-full min-w-0 max-w-[calc(100vw-2rem)] lg:w-80 lg:max-w-none"
-          style={{ right: "auto" }}
+          className="absolute left-0 top-full z-40 mt-2 w-full min-w-0 max-w-[calc(100vw-2rem)]"
         >
           <SackContents shown={shown} byId={byId} small={small} />
         </div>
