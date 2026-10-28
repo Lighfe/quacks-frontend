@@ -83,7 +83,7 @@ export function TabbedGame({
 
   return (
     <main className="flex min-h-screen flex-col bg-background text-foreground">
-      <div role="tablist" className="mx-auto flex w-full max-w-6xl gap-2 px-4 pt-4">
+      <div role="tablist" className="mx-auto flex w-full max-w-6xl flex-wrap gap-2 px-4 pt-4">
         {tabBtn("cauldron", "Cauldron", POT_ICON)}
         {tabBtn("ingredients", "Ingredients", BOOK_ICON)}
         {card ? (
