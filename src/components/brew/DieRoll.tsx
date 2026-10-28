@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState, type MutableRefObject } from "react";
 
 import type { DieRollEntry, View } from "@/lib/game-api";
 import { GEM, PixelSymbol, STAR, type PixelGrid } from "./pixel-icons";
@@ -28,23 +28,28 @@ export interface ActiveRoll {
 
 // Plays view.game.last_roll once per round in this page session, one die
 // after another. Who rolls and what comes only from the view.
-export function useBonusRoll(view: View): ActiveRoll | null {
+export type PlayedRounds = MutableRefObject<Set<number>>;
+
+// The played-rounds memory may be owned by a parent so it survives remounts.
+export function useBonusRoll(view: View, playedRounds?: PlayedRounds): ActiveRoll | null {
   const reduced = useReducedMotion();
-  const played = useRef(new Set<number>());
+  const ownPlayed = useRef(new Set<number>());
+  const played = playedRounds ?? ownPlayed;
   const [state, setState] = useState<{ round: number; rolls: DieRollEntry[]; index: number } | null>(null);
   const last = view.game.last_roll;
-  let current = state;
-  if (
-    last &&
+  const fresh =
+    !!last &&
     last.rolls.length > 0 &&
     last.round === view.game.round &&
     ROLL_PHASES.has(view.game.phase) &&
-    !played.current.has(last.round)
-  ) {
+    !played.current.has(last.round);
+  // Shown from the first render (derived), recorded in a layout effect.
+  const current = state ?? (fresh && last ? { round: last.round, rolls: last.rolls, index: 0 } : null);
+  useLayoutEffect(() => {
+    if (!fresh || !last || played.current.has(last.round)) return;
     played.current.add(last.round);
-    current = { round: last.round, rolls: last.rolls, index: 0 };
-    setState(current);
-  }
+    setState({ round: last.round, rolls: last.rolls, index: 0 });
+  }, [fresh, last, played]);
   useEffect(() => {
     if (!state) return;
     const t = setTimeout(() => {
