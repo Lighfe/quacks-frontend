@@ -33,6 +33,20 @@ describe("bag", () => {
     fireEvent.keyDown(trigger, { key: "Escape" });
     expect(trigger).toHaveAttribute("aria-expanded", "false");
   });
+
+  it("stays open when a mouse click follows hover", () => {
+    render(<Bag bag={{ white_1: 3 }} chips={chips} />);
+    const trigger = screen.getByTestId("bag-sack");
+    act(() => {
+      fireEvent.pointerEnter(trigger, { pointerType: "mouse" });
+      fireEvent.click(trigger);
+    });
+    expect(trigger).toHaveAttribute("aria-expanded", "true");
+    expect(screen.getByTestId("bag-popup").textContent).toContain("×3");
+    fireEvent.click(trigger);
+    expect(trigger).toHaveAttribute("aria-expanded", "false");
+    expect(screen.queryByTestId("bag-popup")).toBeNull();
+  });
 });
 
 describe("own panel", () => {

@@ -109,12 +109,14 @@ export function Bag({
     return () => window.removeEventListener("keydown", onKey);
   }, [open]);
 
+  // Decide from the ref alone: the click handler's `open` closure can be stale
+  // when a pointerenter-driven open has not re-rendered yet.
   const toggle = () => {
-    if (open && hoverOpened.current) {
+    if (hoverOpened.current) {
       hoverOpened.current = false; // pin a hover-opened sack
+      setOpen(true);
       return;
     }
-    hoverOpened.current = false;
     setOpen((o) => !o);
   };
 
