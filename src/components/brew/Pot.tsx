@@ -210,39 +210,45 @@ export function Pot({
             ) : null}
             {litField ? (
               <g data-window-field={shape.field}>
-                {/* Symbol left, number right of it; gem stays in the upper right corner. */}
-                 <PixelIcon grid={COIN} x={shape.center.x - 4.7} y={shape.center.y + (corner ? -4.6 : -2.6)} unit={0.3} label="money" />
+                {/* Numbers centred on the field over a lit backing; tiny icons at the left edge. */}
+                {corner ? (
+                  <>
+                    <rect x={shape.center.x - 3.6} y={shape.center.y - 5} width={7.2} height={4} fill="var(--pot-lit)" />
+                    <rect x={shape.center.x - 3.6} y={shape.center.y + 1} width={7.2} height={4} fill="var(--pot-lit)" />
+                  </>
+                ) : null}
+                <PixelIcon grid={COIN} x={shape.center.x - 4.9} y={shape.center.y - 3.6} unit={0.22} label="money" />
                 <text
-                   x={shape.center.x - 2.9}
-                  y={corner ? shape.center.y - 3.6 : shape.center.y - 1.6}
-                  textAnchor="start"
+                  x={shape.center.x}
+                  y={corner ? shape.center.y - 3 : shape.center.y - 2.2}
+                  textAnchor="middle"
                   dominantBaseline="central"
-                   fontSize={3}
-                   fill="var(--pot-money)"
+                  fontSize={4.2}
+                  fill="var(--pot-money)"
                   stroke={corner ? "var(--background)" : undefined}
-                  strokeWidth={corner ? 0.5 : undefined}
+                  strokeWidth={corner ? 0.4 : undefined}
                   paintOrder="stroke"
                   style={{ fontFamily: "var(--font-body)" }}
                 >
                   {litField.money}
                 </text>
-                 <PixelIcon grid={STAR} x={shape.center.x - 4.7} y={shape.center.y + (corner ? 2.85 : 1.2)} unit={0.22} label="points" />
+                <PixelIcon grid={STAR} x={shape.center.x - 4.9} y={shape.center.y + 1.6} unit={0.2} label="points" />
                 <text
-                   x={shape.center.x - 2.9}
-                  y={corner ? shape.center.y + 3.6 : shape.center.y + 2.2}
-                  textAnchor="start"
+                  x={shape.center.x}
+                  y={corner ? shape.center.y + 3 : shape.center.y + 2.4}
+                  textAnchor="middle"
                   dominantBaseline="central"
-                   fontSize={3}
-                   fill="var(--pot-points)"
+                  fontSize={4.2}
+                  fill="var(--pot-points)"
                   stroke={corner ? "var(--background)" : undefined}
-                  strokeWidth={corner ? 0.5 : undefined}
+                  strokeWidth={corner ? 0.4 : undefined}
                   paintOrder="stroke"
                   style={{ fontFamily: "var(--font-body)" }}
                 >
                   {litField.points}
                 </text>
                 {litField.ruby ? (
-                  <PixelIcon data-ruby grid={GEM} x={shape.center.x + 2.4} y={shape.center.y - 4.4} unit={0.5} label="rubies" />
+                  <PixelIcon data-ruby grid={GEM} x={shape.center.x + 3.2} y={shape.center.y - 4.8} unit={0.36} label="rubies" />
                 ) : null}
               </g>
             ) : null}
