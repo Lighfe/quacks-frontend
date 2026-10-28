@@ -546,7 +546,7 @@ function ing(colour: ChipColour, effect: string, chips: [number, number | null, 
 }
 const ROUND1_INGREDIENTS: Ingredient[] = [
   ing("white", "Too many white chips make the pot explode.", [[1, null, null], [2, null, null], [3, null, null]], 1),
-  ing("orange", "No effect.", [[1, 3, 1], [6, 18, 1]], 1),
+  ing("orange", "", [[1, 3, 1], [6, 18, 1]], 1),
   ing("green", "1 ruby if among the last two chips.", [[1, 4, 1], [2, 8, 1], [4, 14, 1]], 1),
   ing("blue", "Draw chips equal to its value, place one.", [[1, 5, 1], [2, 10, 1], [4, 19, 1]], 1),
   ing("red", "+1 with 1-2 orange chips, +2 with 3+.", [[1, 6, 1], [2, 10, 1], [4, 16, 1]], 1),

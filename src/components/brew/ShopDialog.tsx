@@ -1,6 +1,6 @@
 import type { View } from "@/lib/game-api";
 import { ChipToken } from "./Chip";
-import { COIN, GEM, PixelSymbol } from "./pixel-icons";
+import { COIN, FLASK_EMPTY, FLASK_FULL, GEM, PixelSymbol, STAR } from "./pixel-icons";
 
 export const SHOP_QUESTION = "What would you like to buy?";
 export const RUBY_QUESTION = "What would you like to do with your rubies?";
@@ -36,8 +36,28 @@ export function ShopDialog({
   const chips = new Map(
     (view.ingredients ?? []).flatMap((i) => i.chips.map((c) => [c.chip, { ...c, colour: i.colour }] as const)),
   );
+  const me = view.seats.find((s) => s.id === view.you);
   return (
     <section className="torn-edge bg-parchment px-6 py-5 text-parchment-ink" aria-label="dialogue">
+      {me ? (
+        <div data-testid="shop-status" className="mb-3 flex flex-wrap items-center gap-x-4 gap-y-1 font-pixel text-[10px]">
+          <span data-testid="status-money" className="flex items-center gap-1">
+            <PixelSymbol grid={COIN} unit={3} label="money" />
+            {me.money}
+          </span>
+          <span data-testid="status-points" className="flex items-center gap-1">
+            <PixelSymbol grid={STAR} unit={2} label="points" />
+            {me.points}
+          </span>
+          <span data-testid="status-rubies" className="flex items-center gap-1">
+            <PixelSymbol grid={GEM} unit={3} label="rubies" />
+            {me.rubies}
+          </span>
+          <span data-testid="status-flask" data-full={me.flask_full ? "true" : "false"} className="flex items-center">
+            <PixelSymbol grid={me.flask_full ? FLASK_FULL : FLASK_EMPTY} unit={3} label={me.flask_full ? "flask full" : "flask empty"} />
+          </span>
+        </div>
+      ) : null}
       <p className="mb-3 font-pixel text-xs">{phase === "ruby" ? RUBY_QUESTION : SHOP_QUESTION}</p>
       {view.legal.length === 0 && view.to_act.length > 0 ? (
         <p className="text-sm">Waiting for {view.to_act.join(", ")}</p>
