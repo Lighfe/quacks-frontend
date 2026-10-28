@@ -1,5 +1,4 @@
 import type { Seat } from "@/lib/game-api";
-import { PixelFrame } from "./PixelFrame";
 import { COIN, FLASK_EMPTY, FLASK_FULL, GEM, PixelSymbol, STAR } from "./pixel-icons";
 
 export function Stats({ seat }: { seat: Seat }) {
@@ -9,7 +8,7 @@ export function Stats({ seat }: { seat: Seat }) {
     { grid: GEM, label: "rubies", value: seat.rubies },
   ];
   return (
-    <PixelFrame title={seat.id}>
+    <div>
       <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
         {items.map((it) => (
           <div key={it.label} className="flex items-center gap-2">
@@ -25,6 +24,6 @@ export function Stats({ seat }: { seat: Seat }) {
           </span>
         )}
       </div>
-    </PixelFrame>
+    </div>
   );
 }
