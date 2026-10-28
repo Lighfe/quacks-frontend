@@ -149,6 +149,12 @@
 }
 
 /* Pixel animations: stepped keyframes, off with reduced motion. */
+.pot-returning [data-landing],
+.pot-returning [data-trail],
+.pot-returning [data-chip-value] {
+  visibility: hidden;
+}
+
 @keyframes pixel-drop {
   0% {
     transform: translateY(-48px);

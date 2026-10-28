@@ -284,6 +284,7 @@ export function Pot({
             return (
               <text
                 key={`v${entry.order}`}
+                data-chip-value
                 x={c.x}
                 y={c.y}
                 textAnchor="middle"

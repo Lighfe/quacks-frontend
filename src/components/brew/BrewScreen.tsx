@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 
 import type { PotEntry, View } from "@/lib/game-api";
 import { newPotOrders } from "@/lib/brew-view";
@@ -14,6 +14,7 @@ import { Pot } from "./Pot";
 import { RoundHeader } from "./RoundHeader";
 import { Stats } from "./Stats";
 import { WhiteMeter } from "./WhiteMeter";
+import { ReturnFlights } from "./RoundCleanup";
 
 export function BrewScreen({
   view,
@@ -22,6 +23,8 @@ export function BrewScreen({
   error,
   hideActions = false,
   roll = null,
+  cleanupPot,
+  onCleanupDone = () => {},
 }: {
   view: View;
   onAction: (id: string) => void;
@@ -29,12 +32,16 @@ export function BrewScreen({
   error: string | null;
   hideActions?: boolean;
   roll?: ActiveRoll | null;
+  cleanupPot?: PotEntry[] | undefined;
+  onCleanupDone?: () => void;
 }) {
   // Animation tracking: chips with an order not seen before drop in; a seat
   // whose status just changed to exploded gets smoke. Diffed by order because
   // chips can also leave the pot.
   const seenOrders = useRef(new Map<string, Set<number>>());
   const ownPanelRef = useRef<HTMLDivElement>(null);
+  const [panelReady, setPanelReady] = useState(false);
+  useLayoutEffect(() => setPanelReady(true), []);
   const startedFlight = useRef<View | null>(null);
   const [flightEntry, setFlightEntry] = useState<PotEntry | null>(null);
   const prevStatus = useRef(new Map<string, string>());
@@ -84,12 +91,12 @@ export function BrewScreen({
               <div className="flex flex-col gap-4 md:flex-row">
                 <div className="relative w-full min-w-0 md:flex-1">
                 <Pot
-                  pot={youSeat.pot}
+                  pot={cleanupPot ?? youSeat.pot}
                   window={view.window}
                   mode="own"
                   droplet={youSeat.droplet}
                   ratTail={youSeat.rat_tail}
-                  newOrders={freshOrders.get(youSeat.id)}
+                  newOrders={cleanupPot ? undefined : freshOrders.get(youSeat.id)}
                   exploded={freshExplosions.has(youSeat.id)}
                   className="w-full"
                 />
@@ -116,7 +123,8 @@ export function BrewScreen({
             />
             <ActionBar legal={view.legal} error={error} onAction={onAction} disabled={pending} />
             </>)}
-            {flightEntry ? (
+            {cleanupPot && panelReady ? <ReturnFlights pot={cleanupPot} scope={ownPanelRef} onDone={onCleanupDone} /> : null}
+            {flightEntry && !cleanupPot ? (
               <DrawFlight
                 key={flightEntry.order}
                 entry={flightEntry}

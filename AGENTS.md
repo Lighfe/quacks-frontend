@@ -15,3 +15,4 @@
 - The app contains no game rules: landings, scores, limits and legal actions always come from the service view; the UI only renders them.
 - View fetching and action sending live only in src/components/brew/GameScreen.tsx (revision guard via newerView, one action in flight, controls disabled while pending); phase screens are presentational — keeps the stale-view/409 fixes in one place.
 - Mock mode is carried through the route, backend config and query key; the static playtest fixture stays independent of the sequential fixture — prevents cache or action leakage between mocks.
+- Round-cleanup history and consumed rounds are owned by GameScreen and passed to the tab shell; only consecutive same-seat views can animate, using the previous view's own pot and measured SVG fields — survives hot-seat remounts without rules or duplicated geometry.
