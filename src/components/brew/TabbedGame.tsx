@@ -83,7 +83,7 @@ export function TabbedGame({
 
   return (
     <main className="flex min-h-screen flex-col bg-background text-foreground">
-      <div role="tablist" className="mx-auto flex max-w-6xl gap-2 px-4 pt-4">
+      <div role="tablist" className="mx-auto flex w-full max-w-6xl gap-2 px-4 pt-4">
         {tabBtn("cauldron", "Cauldron", POT_ICON)}
         {tabBtn("ingredients", "Ingredients", BOOK_ICON)}
         {card ? (
@@ -91,7 +91,7 @@ export function TabbedGame({
             type="button"
             aria-label="Read round card"
             onClick={() => setReading(true)}
-            className="pixel-border ml-auto flex items-center bg-parchment px-3 py-2 text-parchment-ink"
+            className="pixel-border ml-auto flex items-center bg-card px-3 py-2"
           >
             <PixelSymbol grid={SCROLL_ICON} unit={3} label="" />
           </button>
