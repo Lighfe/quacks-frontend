@@ -8,7 +8,7 @@ import { PhaseScreen } from "./PhaseScreen";
 import { PixelSymbol, type PixelGrid } from "./pixel-icons";
 import { ShopDialog } from "./ShopDialog";
 import { RoundCardScroll } from "./RoundCardScroll";
-import { useBonusRoll } from "./DieRoll";
+import { useBonusRoll, type PlayedRounds } from "./DieRoll";
 import { EndScreen } from "./EndScreen";
 
 const POT_ICON: PixelGrid = ["a.....a", "ggggggg", ".ggggg.", "gkkkkkg", "gkkkkkg", ".gkkkg.", "..g.g.."];
@@ -25,6 +25,7 @@ export function TabbedGame({
   pending,
   error,
   onNewGame = () => {},
+  playedRounds,
 }: {
   view: View;
   shownSeat: string;
@@ -32,9 +33,10 @@ export function TabbedGame({
   pending: boolean;
   error: string | null;
   onNewGame?: () => void;
+  playedRounds?: PlayedRounds;
 }) {
   const phase = view.game.phase;
-  const roll = useBonusRoll(view);
+  const roll = useBonusRoll(view, playedRounds);
   const rolling = roll !== null;
   // Entering the shop opens Ingredients, but only once the last die is gone.
   const [tab, setTab] = useState<Tab>(phase === "shop" && !rolling ? "ingredients" : "cauldron");

@@ -84,6 +84,8 @@ export function GameScreen({
     }
   }, [seat, view, shownSeat]);
 
+  // Rounds whose bonus roll already played; survives TabbedGame remounts.
+  const playedRounds = useRef(new Set<number>());
   const [notice, setNotice] = useState<string | null>(null);
   // Synchronous guard: a second click before re-render must not send.
   const pendingRef = useRef(false);
@@ -154,6 +156,6 @@ export function GameScreen({
     );
   }
   return (
-    <TabbedGame view={view} shownSeat={shownSeat} onAction={act} pending={pending} error={notice} onNewGame={onNewGame} />
+    <TabbedGame view={view} shownSeat={shownSeat} onAction={act} pending={pending} error={notice} onNewGame={onNewGame} playedRounds={playedRounds} />
   );
 }

@@ -58,6 +58,19 @@ describe("bonus die", () => {
     expect(dice()).toHaveLength(0);
   });
 
+  it("shared memory: no replay after unmount and remount with the same round", async () => {
+    const played = { current: new Set<number>() };
+    const v = await load("die");
+    const shared = (view: View) => (
+      <TabbedGame view={view} shownSeat="p1" onAction={vi.fn()} pending={false} error={null} playedRounds={played} />
+    );
+    const first = render(shared(v));
+    expect(dice()).toHaveLength(1);
+    first.unmount();
+    render(shared({ ...v, game: { ...v.game, revision: v.game.revision + 1 } }));
+    expect(dice()).toHaveLength(0);
+  });
+
   it("switches to Ingredients only after the roll", async () => {
     vi.useFakeTimers();
     const shop = await load("die");
