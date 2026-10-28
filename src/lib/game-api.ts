@@ -102,6 +102,7 @@ export interface Ingredient {
 }
 
 export interface View {
+  board?: { fields: number; laps: number; rat_tails: number[] };
   ingredients?: Ingredient[];
   game: GameInfo;
   you: string;
@@ -140,7 +141,7 @@ export interface BackendConfig {
   mock?: StaticMock;
 }
 
-export const STATIC_MOCKS = ["playtest", "playtest-zero", "playtest-small-bag", "shop", "ruby", "card", "card-choice", "die", "die-opponent", "die-tie"] as const;
+export const STATIC_MOCKS = ["playtest", "playtest-zero", "playtest-small-bag", "shop", "ruby", "card", "card-choice", "die", "die-opponent", "die-tie", "board"] as const;
 export type StaticMock = (typeof STATIC_MOCKS)[number];
 
 export const DEFAULT_API_BASE = "http://localhost:8000";
@@ -220,6 +221,7 @@ export async function createGame(baseUrl: string, body: CreateGameBody): Promise
 
 export function getView(backend: BackendConfig, seat: string): Promise<View> {
   if (backend.kind === "mock" && backend.mock && backend.mock in DIE_MOCKS) return Promise.resolve(DIE_MOCKS[backend.mock as keyof typeof DIE_MOCKS]);
+  if (backend.kind === "mock" && backend.mock === "board") return Promise.resolve(boardView);
   if (backend.kind === "mock" && backend.mock === "card") return Promise.resolve(cardView);
   if (backend.kind === "mock" && backend.mock === "card-choice") return Promise.resolve(cardChoiceView);
   if (backend.kind === "mock" && backend.mock === "shop") return Promise.resolve(shopView);
@@ -238,6 +240,7 @@ export function sendAction(
   revision: number,
 ): Promise<View> {
   if (backend.kind === "mock" && backend.mock && backend.mock in DIE_MOCKS) return Promise.resolve(DIE_MOCKS[backend.mock as keyof typeof DIE_MOCKS]);
+  if (backend.kind === "mock" && backend.mock === "board") return Promise.resolve(boardView);
   if (backend.kind === "mock" && backend.mock === "card") return Promise.resolve(cardView);
   if (backend.kind === "mock" && backend.mock === "card-choice") return Promise.resolve(cardChoiceView);
   if (backend.kind === "mock" && backend.mock === "shop") return Promise.resolve(shopView);
@@ -631,3 +634,15 @@ const dieTieView: View = {
   },
 };
 const DIE_MOCKS = { die: dieView, "die-opponent": dieOpponentView, "die-tie": dieTieView };
+
+// Static point board fixture (mock data only).
+const boardView: View = {
+  ...playtestView,
+  game: { ...playtestView.game, round: 5, rounds: 9 },
+  seats: playtestView.seats.map((s) => ({ ...s, points: s.id === "p1" ? 23 : 57 })),
+  board: {
+    fields: 50,
+    laps: 2,
+    rat_tails: [1, 4, 7, 10, 12, 14, 16, 18, 20, 22, 24, 26, 28, 30, 32, 34, 36, 38, 40, 42, 44, 46, 48],
+  },
+};

@@ -38,13 +38,10 @@ export function PointBoard({ view }: { view: View }) {
     return { x: c.col * CELL + CELL / 2, y: c.row * CELL + CELL / 2 };
   };
   const rounds = view.game.rounds;
-  const flameW = 5 * 1.6;
   const gap = 2.5;
-  const rowW = rounds * flameW + (rounds - 1) * gap;
   const flameUnit = Math.min(1.6, ((size - 2 * CELL - 8) / rounds) / 5 * 0.8);
   const fw = 5 * flameUnit;
   const totalW = rounds * fw + (rounds - 1) * gap;
-  void rowW;
 
   return (
     <div className="mx-auto flex max-w-4xl flex-col items-center gap-4 p-4 lg:flex-row lg:items-start">
