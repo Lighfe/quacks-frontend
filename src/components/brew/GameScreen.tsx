@@ -13,6 +13,7 @@ import {
 import { decideHotSeat, isLegal, newerView } from "@/lib/brew-view";
 import { TabbedGame } from "./TabbedGame";
 import { PixelFrame } from "./PixelFrame";
+import type { CleanupMemory } from "./RoundCleanup";
 
 const KEY_ACTIONS: Record<string, string> = {
   d: "draw",
@@ -86,6 +87,7 @@ export function GameScreen({
 
   // Rounds whose bonus roll already played; survives TabbedGame remounts.
   const playedRounds = useRef(new Set<number>());
+  const cleanupMemory = useRef<CleanupMemory>({ shownSeat: null, views: new Map(), rounds: new Set() });
   const [notice, setNotice] = useState<string | null>(null);
   // Synchronous guard: a second click before re-render must not send.
   const pendingRef = useRef(false);
@@ -156,6 +158,6 @@ export function GameScreen({
     );
   }
   return (
-    <TabbedGame view={view} shownSeat={shownSeat} onAction={act} pending={pending} error={notice} onNewGame={onNewGame} playedRounds={playedRounds} />
+    <TabbedGame view={view} shownSeat={shownSeat} onAction={act} pending={pending} error={notice} onNewGame={onNewGame} playedRounds={playedRounds} cleanupMemory={cleanupMemory} />
   );
 }

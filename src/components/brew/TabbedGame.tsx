@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useRef, useState, type MutableRefObject } from "react";
 
 import type { View } from "@/lib/game-api";
 import { cn } from "@/lib/utils";
@@ -11,6 +11,7 @@ import { RoundCardScroll } from "./RoundCardScroll";
 import { useBonusRoll, type PlayedRounds } from "./DieRoll";
 import { EndScreen } from "./EndScreen";
 import { PointBoard } from "./PointBoard";
+import { useRoundCleanup, type CleanupMemory } from "./RoundCleanup";
 
 const POT_ICON: PixelGrid = ["a.....a", "ggggggg", ".ggggg.", "gkkkkkg", "gkkkkkg", ".gkkkg.", "..g.g.."];
 const SCROLL_ICON: PixelGrid = ["kkkkkkk", ".wwwww.", ".wkkkw.", ".wwwww.", ".wkkkw.", ".wwwww.", "kkkkkkk"];
@@ -29,6 +30,7 @@ export function TabbedGame({
   error,
   onNewGame = () => {},
   playedRounds,
+  cleanupMemory,
 }: {
   view: View;
   shownSeat: string;
@@ -37,12 +39,18 @@ export function TabbedGame({
   error: string | null;
   onNewGame?: () => void;
   playedRounds?: PlayedRounds;
+  cleanupMemory?: MutableRefObject<CleanupMemory>;
 }) {
   const phase = view.game.phase;
+  const { cleanup, advanced, finish } = useRoundCleanup(view, shownSeat, cleanupMemory);
   const roll = useBonusRoll(view, playedRounds);
   const rolling = roll !== null;
   // Entering the shop opens Ingredients, but only once the last die is gone.
   const [tab, setTab] = useState<Tab>(phase === "shop" && !rolling ? "ingredients" : "cauldron");
+  const shownTab = advanced || cleanup ? "cauldron" : tab;
+  useLayoutEffect(() => {
+    if (advanced) setTab("cauldron");
+  }, [advanced]);
   const prevPhase = useRef(phase);
   const wantShop = useRef(phase === "shop" && rolling);
   useEffect(() => {
@@ -88,11 +96,12 @@ export function TabbedGame({
     <button
       type="button"
       role="tab"
-      aria-selected={tab === id}
+       aria-selected={shownTab === id}
+       disabled={!!cleanup}
       onClick={() => setTab(id)}
       className={cn(
         "pixel-border flex items-center gap-2 px-4 py-2 font-pixel text-[10px] uppercase",
-        tab === id ? "bg-card text-accent" : "bg-background text-muted-foreground",
+         shownTab === id ? "bg-card text-accent" : "bg-background text-muted-foreground",
       )}
     >
       <PixelSymbol grid={icon} unit={3} label="" />
@@ -110,6 +119,7 @@ export function TabbedGame({
           <button
             type="button"
             aria-label="Read round card"
+            disabled={!!cleanup}
             onClick={() => setReading(true)}
             className="pixel-border ml-auto flex items-center bg-card px-3 py-2"
           >
@@ -118,19 +128,19 @@ export function TabbedGame({
         ) : null}
       </div>
       <div className="min-h-0 flex-1 pb-24">
-        {tab === "board" ? (
+        {shownTab === "board" ? (
           <PointBoard view={view} />
-        ) : tab === "ingredients" ? (
+        ) : shownTab === "ingredients" ? (
           <div className="mx-auto max-w-6xl p-4">
             <IngredientsBoard ingredients={view.ingredients ?? []} />
           </div>
-        ) : brewing || shopLike || rolling ? (
-          <BrewScreen view={view} onAction={onAction} pending={pending} error={error} hideActions={!brewing} roll={roll} />
+        ) : brewing || shopLike || rolling || cleanup ? (
+          <BrewScreen key={`${view.you}:${view.game.round}`} view={view} onAction={onAction} pending={pending || !!cleanup} error={error} hideActions={!brewing || !!cleanup} roll={roll} cleanupPot={cleanup?.pot} onCleanupDone={finish} />
         ) : (
           <PhaseScreen view={view} shownSeat={shownSeat} onAction={onAction} pending={pending} error={error} />
         )}
       </div>
-      {card && scrollMode ? (
+      {card && scrollMode && !cleanup ? (
         <RoundCardScroll
           text={card.text}
           mode={scrollMode}

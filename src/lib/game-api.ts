@@ -141,7 +141,7 @@ export interface BackendConfig {
   mock?: StaticMock;
 }
 
-export const STATIC_MOCKS = ["playtest", "playtest-zero", "playtest-small-bag", "shop", "ruby", "card", "card-choice", "die", "die-opponent", "die-tie", "board"] as const;
+export const STATIC_MOCKS = ["playtest", "playtest-zero", "playtest-small-bag", "shop", "ruby", "card", "card-choice", "die", "die-opponent", "die-tie", "board", "round-end"] as const;
 export type StaticMock = (typeof STATIC_MOCKS)[number];
 
 export const DEFAULT_API_BASE = "http://localhost:8000";
@@ -220,6 +220,7 @@ export async function createGame(baseUrl: string, body: CreateGameBody): Promise
 }
 
 export function getView(backend: BackendConfig, seat: string): Promise<View> {
+  if (backend.kind === "mock" && backend.mock === "round-end") return Promise.resolve(roundEndState ? roundEndNextView : roundEndView);
   if (backend.kind === "mock" && backend.mock && backend.mock in DIE_MOCKS) return Promise.resolve(DIE_MOCKS[backend.mock as keyof typeof DIE_MOCKS]);
   if (backend.kind === "mock" && backend.mock === "board") return Promise.resolve(boardView);
   if (backend.kind === "mock" && backend.mock === "card") return Promise.resolve(cardView);
@@ -239,6 +240,10 @@ export function sendAction(
   action: string,
   revision: number,
 ): Promise<View> {
+  if (backend.kind === "mock" && backend.mock === "round-end") {
+    if (action === "done") roundEndState = true;
+    return getView(backend, seat);
+  }
   if (backend.kind === "mock" && backend.mock && backend.mock in DIE_MOCKS) return Promise.resolve(DIE_MOCKS[backend.mock as keyof typeof DIE_MOCKS]);
   if (backend.kind === "mock" && backend.mock === "board") return Promise.resolve(boardView);
   if (backend.kind === "mock" && backend.mock === "card") return Promise.resolve(cardView);
@@ -574,6 +579,29 @@ const rubyView: View = {
     { id: "refill_flask", label: "refill flask: 2 rubies" },
     { id: "done", label: "done" },
   ],
+};
+
+// Two literal snapshots; Done selects round 2 for the rest of this page session.
+let roundEndState = false;
+const roundEndView: View = {
+  ...rubyView,
+  legal: [{ id: "done", label: "Done" }],
+};
+const roundEndNextView: View = {
+  ...roundEndView,
+  game: {
+    ...roundEndView.game, round: 2, revision: 2, phase: "brewing",
+    card: { id: "card_4", effect: "explosion_limit_plus_2", text: "Explosion limit +2 this round." },
+    explosion_limit: 9,
+  },
+  seats: [
+    { ...playtestView.seats[0], id: "p1", kind: "human", status: "brewing", points: 12, money: 7, rubies: 2, flask_full: true,
+      droplet: 3, rat_tail: 2, start_field: 5, white_total: 0, pot: [],
+      bag: { white_1: 4, white_2: 2, orange_1: 3, green_1: 1, blue_2: 1, red_1: 2, red_2: 1, blue_4: 1 } },
+    { ...mockSeatP2(), white_total: 0, pot: [], bag: { white_1: 4, white_2: 2, orange_1: 4, blue_1: 2, purple_1: 1, white_3: 1 } },
+  ],
+  window: mockWindow(6),
+  legal: [{ id: "draw", label: "Draw" }, { id: "stop", label: "Stop" }],
 };
 
 // Static round card fixtures (mock data only).
