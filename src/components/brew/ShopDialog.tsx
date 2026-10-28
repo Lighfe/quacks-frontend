@@ -38,7 +38,7 @@ export function ShopDialog({
   );
   const me = view.seats.find((s) => s.id === view.you);
   return (
-    <section className="torn-edge bg-parchment px-6 py-5 text-parchment-ink" aria-label="dialogue">
+    <section className="torn-edge bg-parchment py-5 pl-[max(2rem,calc(4%+1rem))] pr-[max(2rem,calc(4%+1rem))] text-parchment-ink" aria-label="dialogue">
       {me ? (
         <div data-testid="shop-status" className="mb-3 flex flex-wrap items-center gap-x-4 gap-y-1 font-pixel text-[10px]">
           <span data-testid="status-money" className="flex items-center gap-1">
