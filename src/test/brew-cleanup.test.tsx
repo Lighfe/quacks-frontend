@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { cleanup, fireEvent, render, screen, within } from "@testing-library/react";
+import { act, cleanup, fireEvent, render, screen, within } from "@testing-library/react";
 import { renderToStaticMarkup } from "react-dom/server";
 
 import { Bag } from "@/components/brew/Bag";
@@ -32,6 +32,23 @@ describe("bag", () => {
     expect(trigger).toHaveAttribute("aria-expanded", "true");
     fireEvent.keyDown(trigger, { key: "Escape" });
     expect(trigger).toHaveAttribute("aria-expanded", "false");
+  });
+
+  it("stays open when a mouse click follows hover", () => {
+    render(<Bag bag={{ white_1: 3 }} chips={chips} />);
+    const trigger = screen.getByTestId("bag-sack");
+    act(() => {
+      // jsdom has no PointerEvent, so hand the event its pointerType by hand.
+      const enter = new Event("pointerover", { bubbles: true });
+      Object.assign(enter, { pointerType: "mouse" });
+      trigger.dispatchEvent(enter);
+      fireEvent.click(trigger);
+    });
+    expect(trigger).toHaveAttribute("aria-expanded", "true");
+    expect(screen.getByTestId("bag-popup").textContent).toContain("×3");
+    fireEvent.click(trigger);
+    expect(trigger).toHaveAttribute("aria-expanded", "false");
+    expect(screen.queryByTestId("bag-popup")).toBeNull();
   });
 });
 
