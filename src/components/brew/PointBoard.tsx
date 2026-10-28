@@ -96,7 +96,6 @@ export function PointBoard({ view }: { view: View }) {
           else { mx += mx < width / 2 ? -10 : 10; my += my < height / 2 ? -9.5 : 9.5; }
           return (
             <g key={t} data-testid="rat" data-after-tile={t}>
-              <rect x={(a.x + b.x) / 2 - 0.5} y={(a.y + b.y) / 2 - 0.5} width={1} height={1} fill="var(--accent)" opacity={0} />
               <PixelIcon grid={RAT} x={mx - 5 * ru} y={my - 2.5 * ru} unit={ru} />
             </g>
           );
