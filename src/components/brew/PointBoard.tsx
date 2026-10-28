@@ -83,18 +83,18 @@ export function PointBoard({ view }: { view: View }) {
           const my = (a.y + b.y) / 2;
           return (
             <g key={t} data-testid="rat" data-after-tile={t}>
-              <PixelIcon grid={RAT} x={mx - 4 * 0.7} y={my - 2 * 0.7} unit={0.7} />
+              <PixelIcon grid={RAT} x={mx - 4 * 0.9} y={my - 2 * 0.9} unit={0.9} />
             </g>
           );
         })}
         {view.seats.map((s, i) => {
           const tile = markerTile(s.points, board);
           const p = centre(tile);
-          const unit = 0.9;
-          const ox = view.seats.length > 1 ? (i % 2 === 0 ? -2.6 : 2.6) - 2.25 : -2.25;
+          const unit = 1.2;
+          const ox = view.seats.length > 1 ? (i % 2 === 0 ? -2.4 : 2.4) - 3 : -3;
           return (
             <g key={s.id} data-testid="board-marker" data-seat={s.id} data-tile={tile} aria-label={s.id} role="img">
-              <Pawn x={p.x + ox} y={p.y - 2.25 + (i >= 2 ? 2 : 0)} colour={SEAT_COLOURS[i % SEAT_COLOURS.length]!} unit={unit} />
+              <Pawn x={p.x + ox} y={p.y - 6 + (i >= 2 ? 2 : 0)} colour={SEAT_COLOURS[i % SEAT_COLOURS.length]!} unit={unit} />
             </g>
           );
         })}
