@@ -2,7 +2,7 @@ import type { View } from "@/lib/game-api";
 import { flameState, frameCells, lapMarker, markerTile } from "@/lib/point-board";
 import { PixelIcon, type PixelGrid } from "./pixel-icons";
 
-const RAT: PixelGrid = ["..ww....", ".wggg...", "wggggga.", ".g.g..aa"];
+const RAT: PixelGrid = [".ww.......", "wkwggg....", "gggggggg..", ".ggggggg.a", "..g..g..aa"];
 const FLAME_LIT: PixelGrid = ["..y..", ".yoy.", ".yoy.", "yoroy", "yorry", ".ooo.", "ggggg"];
 const FLAME_BURNT: PixelGrid = ["..g..", ".....", "..g..", ".g.g.", ".ggg.", ".ggg.", "ggggg"];
 const FLAME_UNLIT: PixelGrid = [".....", ".....", "..w..", "..w..", ".www.", ".www.", "ggggg"];
@@ -31,28 +31,35 @@ export function PointBoard({ view }: { view: View }) {
   if (!board || board.fields <= 0) {
     return <p className="p-6 text-center font-pixel text-xs text-muted-foreground">No point board in this game view</p>;
   }
-  const { n, cells } = frameCells(board.fields);
-  const size = n * CELL;
+  const { w, h, cells } = frameCells(board.fields);
+  const width = w * CELL;
+  const height = h * CELL;
+  const M = 12;
   const centre = (t: number) => {
     const c = cells[((t % board.fields) + board.fields) % board.fields]!;
-    return { x: c.col * CELL + CELL / 2, y: c.row * CELL + CELL / 2 };
+    return { x: c.col * CELL + CELL / 2, y: c.row * CELL + CELL / 2, col: c.col, row: c.row };
   };
+  // Unit vector pointing from a tile towards the board centre.
+  const inward = (col: number, row: number) => ({
+    x: col === 0 ? 1 : col === w - 1 ? -1 : 0,
+    y: row === 0 ? 1 : row === h - 1 ? -1 : 0,
+  });
   const rounds = view.game.rounds;
   const gap = 2.5;
-  const flameUnit = Math.min(1.6, ((size - 2 * CELL - 8) / rounds) / 5 * 0.8);
+  const flameUnit = Math.min(1.6, ((width - 2 * CELL - 30) / rounds) / 5 * 0.8);
   const fw = 5 * flameUnit;
   const totalW = rounds * fw + (rounds - 1) * gap;
 
   return (
     <div className="mx-auto flex max-w-4xl flex-col items-center gap-4 p-4 lg:flex-row lg:items-start">
       <svg
-        viewBox={`-2 -2 ${size + 4} ${size + 4}`}
+        viewBox={`${-M} ${-M} ${width + 2 * M} ${height + 2 * M}`}
         className="w-full max-w-[640px]"
         role="img"
         aria-label="Point board"
         shapeRendering="crispEdges"
       >
-        <rect x={CELL} y={CELL} width={size - 2 * CELL} height={size - 2 * CELL} fill="var(--card)" />
+        <rect x={CELL} y={CELL} width={width - 2 * CELL} height={height - 2 * CELL} fill="var(--card)" />
         {cells.map((c, t) => (
           <g key={t} data-testid="board-tile" data-tile={t}>
             <rect
@@ -79,11 +86,17 @@ export function PointBoard({ view }: { view: View }) {
         {board.rat_tails.map((t) => {
           const a = centre(t);
           const b = centre(t + 1);
-          const mx = (a.x + b.x) / 2;
-          const my = (a.y + b.y) / 2;
+          let mx = (a.x + b.x) / 2;
+          let my = (a.y + b.y) / 2;
+          const ru = 1;
+          const sameRow = a.row === b.row;
+          const sameCol = a.col === b.col;
+          if (sameRow) my += a.row === 0 ? -9.5 : 9.5;
+          else if (sameCol) mx += a.col === 0 ? -10 : 10;
+          else { mx += mx < width / 2 ? -10 : 10; my += my < height / 2 ? -9.5 : 9.5; }
           return (
             <g key={t} data-testid="rat" data-after-tile={t}>
-              <PixelIcon grid={RAT} x={mx - 4 * 0.9} y={my - 2 * 0.9} unit={0.9} />
+              <PixelIcon grid={RAT} x={mx - 5 * ru} y={my - 2.5 * ru} unit={ru} />
             </g>
           );
         })}
@@ -91,10 +104,15 @@ export function PointBoard({ view }: { view: View }) {
           const tile = markerTile(s.points, board);
           const p = centre(tile);
           const unit = 1.2;
-          const ox = view.seats.length > 1 ? (i % 2 === 0 ? -2.4 : 2.4) - 3 : -3;
+          const into = inward(p.col, p.row);
+          // Stand on the inner side of the tile, side by side along the track.
+          const along = into.x !== 0 && into.y === 0 ? { x: 0, y: 1 } : { x: 1, y: 0 };
+          const spread = view.seats.length > 1 ? (i % 2 === 0 ? -3.6 : 3.6) : 0;
+          const cx = p.x + into.x * 11 + along.x * spread;
+          const cy = p.y + into.y * 11 + along.y * spread;
           return (
             <g key={s.id} data-testid="board-marker" data-seat={s.id} data-tile={tile} aria-label={s.id} role="img">
-              <Pawn x={p.x + ox} y={p.y - 6 + (i >= 2 ? 2 : 0)} colour={SEAT_COLOURS[i % SEAT_COLOURS.length]!} unit={unit} />
+              <Pawn x={cx - 3} y={cy - 3 + (i >= 2 ? 2 : 0)} colour={SEAT_COLOURS[i % SEAT_COLOURS.length]!} unit={unit} />
             </g>
           );
         })}
@@ -103,10 +121,10 @@ export function PointBoard({ view }: { view: View }) {
             const r = k + 1;
             const state = flameState(r, view.game.round);
             const grid = state === "lit" ? FLAME_LIT : state === "burnt" ? FLAME_BURNT : FLAME_UNLIT;
-            const x = size / 2 - totalW / 2 + k * (fw + gap);
+            const x = width / 2 - totalW / 2 + k * (fw + gap);
             return (
               <g key={r} data-testid="flame" data-round={r} data-state={state} opacity={state === "burnt" ? 0.5 : 1}>
-                <PixelIcon grid={grid} x={x} y={size / 2 - 3.5 * flameUnit} unit={flameUnit} />
+                <PixelIcon grid={grid} x={x} y={height / 2 - 3.5 * flameUnit} unit={flameUnit} />
               </g>
             );
           })}
