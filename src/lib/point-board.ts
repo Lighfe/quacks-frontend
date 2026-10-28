@@ -19,13 +19,16 @@ export function flameState(i: number, round: number): "lit" | "burnt" | "unlit" 
   return i === round ? "lit" : i < round ? "burnt" : "unlit";
 }
 
-// Tiles run clockwise around the edge of an n x n grid, starting top-left.
-export function frameCells(fields: number): { n: number; cells: { col: number; row: number }[] } {
-  const n = Math.max(3, Math.ceil(fields / 4) + 1);
+// Tiles run clockwise around the edge of a w x h grid, starting top-left.
+// w and h are chosen so the ring has exactly `fields` cells when possible.
+export function frameCells(fields: number): { w: number; h: number; cells: { col: number; row: number }[] } {
+  const half = Math.max(4, Math.ceil((fields + 4) / 2));
+  const h = Math.max(2, Math.floor(half / 2));
+  const w = half - h;
   const ring: { col: number; row: number }[] = [];
-  for (let c = 0; c < n - 1; c++) ring.push({ col: c, row: 0 });
-  for (let r = 0; r < n - 1; r++) ring.push({ col: n - 1, row: r });
-  for (let c = n - 1; c > 0; c--) ring.push({ col: c, row: n - 1 });
-  for (let r = n - 1; r > 0; r--) ring.push({ col: 0, row: r });
-  return { n, cells: ring.slice(0, fields) };
+  for (let c = 0; c < w - 1; c++) ring.push({ col: c, row: 0 });
+  for (let r = 0; r < h - 1; r++) ring.push({ col: w - 1, row: r });
+  for (let c = w - 1; c > 0; c--) ring.push({ col: c, row: h - 1 });
+  for (let r = h - 1; r > 0; r--) ring.push({ col: 0, row: r });
+  return { w, h, cells: ring.slice(0, fields) };
 }
