@@ -12,6 +12,7 @@ export const PALETTE: Record<string, string> = {
   y: "var(--chip-yellow)",
   v: "var(--pot-points)",
   n: "var(--chip-green)",
+  o: "var(--chip-orange)",
 };
 
 // Cut gem: narrow flat table, widest girdle row, tapering to a point. 5 x 4 px.

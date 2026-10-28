@@ -56,6 +56,18 @@ export interface GameInfo {
   explosion_limit: number;
   card: RoundCard | null;
   winner: string | null;
+  last_roll?: LastRoll | null;
+}
+
+export interface DieRollEntry {
+  seat: string;
+  face: string;
+  text: string;
+}
+
+export interface LastRoll {
+  round: number;
+  rolls: DieRollEntry[];
 }
 
 export interface WindowField {
@@ -128,7 +140,7 @@ export interface BackendConfig {
   mock?: StaticMock;
 }
 
-export const STATIC_MOCKS = ["playtest", "playtest-zero", "playtest-small-bag", "shop", "ruby", "card", "card-choice"] as const;
+export const STATIC_MOCKS = ["playtest", "playtest-zero", "playtest-small-bag", "shop", "ruby", "card", "card-choice", "die", "die-opponent", "die-tie"] as const;
 export type StaticMock = (typeof STATIC_MOCKS)[number];
 
 export const DEFAULT_API_BASE = "http://localhost:8000";
@@ -207,6 +219,7 @@ export async function createGame(baseUrl: string, body: CreateGameBody): Promise
 }
 
 export function getView(backend: BackendConfig, seat: string): Promise<View> {
+  if (backend.kind === "mock" && backend.mock && backend.mock in DIE_MOCKS) return Promise.resolve(DIE_MOCKS[backend.mock as keyof typeof DIE_MOCKS]);
   if (backend.kind === "mock" && backend.mock === "card") return Promise.resolve(cardView);
   if (backend.kind === "mock" && backend.mock === "card-choice") return Promise.resolve(cardChoiceView);
   if (backend.kind === "mock" && backend.mock === "shop") return Promise.resolve(shopView);
@@ -224,6 +237,7 @@ export function sendAction(
   action: string,
   revision: number,
 ): Promise<View> {
+  if (backend.kind === "mock" && backend.mock && backend.mock in DIE_MOCKS) return Promise.resolve(DIE_MOCKS[backend.mock as keyof typeof DIE_MOCKS]);
   if (backend.kind === "mock" && backend.mock === "card") return Promise.resolve(cardView);
   if (backend.kind === "mock" && backend.mock === "card-choice") return Promise.resolve(cardChoiceView);
   if (backend.kind === "mock" && backend.mock === "shop") return Promise.resolve(shopView);
@@ -585,3 +599,35 @@ const cardChoiceView: View = {
     { id: "card_upgrade:orange_1", label: "Upgrade orange 1 to orange 6" },
   ],
 };
+
+// Static bonus die fixtures (mock data only).
+const dieView: View = {
+  ...shopView,
+  game: { ...shopView.game, last_roll: { round: 1, rolls: [{ seat: "p1", face: "droplet_1", text: "Droplet +1" }] } },
+};
+const dieOpponentView: View = {
+  ...playtestView,
+  game: {
+    ...playtestView.game, phase: "choice",
+    last_roll: { round: playtestView.game.round, rolls: [{ seat: "p2", face: "ruby_1", text: "1 ruby" }] },
+  },
+  seats: playtestView.seats.map((s) => (s.id === "p1" ? { ...s, status: "exploded" } : s)),
+  legal: [
+    { id: "take_money", label: "take money" },
+    { id: "take_points", label: "take points" },
+  ],
+};
+const dieTieView: View = {
+  ...shopView,
+  game: {
+    ...shopView.game,
+    last_roll: {
+      round: 1,
+      rolls: [
+        { seat: "p1", face: "orange_1", text: "Orange chip" },
+        { seat: "p2", face: "point_2", text: "+2 points" },
+      ],
+    },
+  },
+};
+const DIE_MOCKS = { die: dieView, "die-opponent": dieOpponentView, "die-tie": dieTieView };
