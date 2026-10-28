@@ -4,6 +4,7 @@ import type { PotEntry, View } from "@/lib/game-api";
 import { newPotOrders } from "@/lib/brew-view";
 import { ActionBar } from "./ActionBar";
 import { DrawFlight } from "./DrawFlight";
+import { DieRoll, type ActiveRoll } from "./DieRoll";
 import { Bag } from "./Bag";
 import { HandPicker } from "./HandPicker";
 import { LogPanel } from "./LogPanel";
@@ -20,12 +21,14 @@ export function BrewScreen({
   pending,
   error,
   hideActions = false,
+  roll = null,
 }: {
   view: View;
   onAction: (id: string) => void;
   pending: boolean;
   error: string | null;
   hideActions?: boolean;
+  roll?: ActiveRoll | null;
 }) {
   // Animation tracking: chips with an order not seen before drop in; a seat
   // whose status just changed to exploded gets smoke. Diffed by order because
@@ -79,6 +82,7 @@ export function BrewScreen({
           <div ref={ownPanelRef} className="flex flex-1 flex-col gap-4">
             <PixelFrame>
               <div className="flex flex-col gap-4 md:flex-row">
+                <div className="relative w-full min-w-0 md:flex-1">
                 <Pot
                   pot={youSeat.pot}
                   window={view.window}
@@ -87,8 +91,10 @@ export function BrewScreen({
                   ratTail={youSeat.rat_tail}
                   newOrders={freshOrders.get(youSeat.id)}
                   exploded={freshExplosions.has(youSeat.id)}
-                  className="w-full min-w-0 md:flex-1"
+                  className="w-full"
                 />
+                {roll && roll.entry.seat === view.you ? <DieRoll key={roll.key} roll={roll} cauldron="own" /> : null}
+                </div>
                 <div className="flex w-full shrink-0 flex-col gap-3 md:w-56">
                   <WhiteMeter
                     whiteTotal={youSeat.white_total}
@@ -127,6 +133,7 @@ export function BrewScreen({
                 chips={view.chips}
                 newOrders={freshOrders.get(s.id)}
                 exploded={freshExplosions.has(s.id)}
+                roll={roll && roll.entry.seat === s.id ? roll : null}
               />
             ))}
             <LogPanel log={view.log} />

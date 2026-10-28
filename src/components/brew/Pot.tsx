@@ -27,7 +27,7 @@ const SMOKE_OFFSETS = [
   { x: 0, y: 0 },
 ];
 
-function useReducedMotion(): boolean {
+export function useReducedMotion(): boolean {
   const [reduced, setReduced] = useState(false);
   useEffect(() => {
     const query = window.matchMedia("(prefers-reduced-motion: reduce)");

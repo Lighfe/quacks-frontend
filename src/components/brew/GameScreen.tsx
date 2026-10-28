@@ -11,7 +11,6 @@ import {
   type View,
 } from "@/lib/game-api";
 import { decideHotSeat, isLegal, newerView } from "@/lib/brew-view";
-import { EndScreen } from "./EndScreen";
 import { TabbedGame } from "./TabbedGame";
 import { PixelFrame } from "./PixelFrame";
 
@@ -154,9 +153,7 @@ export function GameScreen({
       </main>
     );
   }
-  const phase = view.game.phase;
-  if (phase === "game_over") return <EndScreen view={view} onNewGame={onNewGame} />;
   return (
-    <TabbedGame view={view} shownSeat={shownSeat} onAction={act} pending={pending} error={notice} />
+    <TabbedGame view={view} shownSeat={shownSeat} onAction={act} pending={pending} error={notice} onNewGame={onNewGame} />
   );
 }

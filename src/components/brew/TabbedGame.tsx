@@ -8,6 +8,8 @@ import { PhaseScreen } from "./PhaseScreen";
 import { PixelSymbol, type PixelGrid } from "./pixel-icons";
 import { ShopDialog } from "./ShopDialog";
 import { RoundCardScroll } from "./RoundCardScroll";
+import { useBonusRoll } from "./DieRoll";
+import { EndScreen } from "./EndScreen";
 
 const POT_ICON: PixelGrid = ["a.....a", "ggggggg", ".ggggg.", "gkkkkkg", "gkkkkkg", ".gkkkg.", "..g.g.."];
 const SCROLL_ICON: PixelGrid = ["kkkkkkk", ".wwwww.", ".wkkkw.", ".wwwww.", ".wkkkw.", ".wwwww.", "kkkkkkk"];
@@ -22,20 +24,31 @@ export function TabbedGame({
   onAction,
   pending,
   error,
+  onNewGame = () => {},
 }: {
   view: View;
   shownSeat: string;
   onAction: (id: string) => void;
   pending: boolean;
   error: string | null;
+  onNewGame?: () => void;
 }) {
   const phase = view.game.phase;
-  const [tab, setTab] = useState<Tab>(phase === "shop" ? "ingredients" : "cauldron");
+  const roll = useBonusRoll(view);
+  const rolling = roll !== null;
+  // Entering the shop opens Ingredients, but only once the last die is gone.
+  const [tab, setTab] = useState<Tab>(phase === "shop" && !rolling ? "ingredients" : "cauldron");
   const prevPhase = useRef(phase);
+  const wantShop = useRef(phase === "shop" && rolling);
   useEffect(() => {
-    if (phase !== prevPhase.current && phase === "shop") setTab("ingredients");
+    if (phase !== prevPhase.current && phase === "shop") wantShop.current = true;
+    if (phase !== "shop") wantShop.current = false;
     prevPhase.current = phase;
-  }, [phase]);
+    if (wantShop.current && !rolling) {
+      wantShop.current = false;
+      setTab("ingredients");
+    }
+  }, [phase, rolling]);
 
   // Round card scroll: opens once per (round, card id); a choice keeps it open
   // until the next view; all text and labels come from the view.
@@ -64,6 +77,7 @@ export function TabbedGame({
 
   const brewing = phase === "brew" || phase === "brewing";
   const shopLike = phase === "shop" || phase === "ruby";
+  if (phase === "game_over" && !rolling) return <EndScreen view={view} onNewGame={onNewGame} />;
 
   const tabBtn = (id: Tab, label: string, icon: PixelGrid) => (
     <button
@@ -102,8 +116,8 @@ export function TabbedGame({
           <div className="mx-auto max-w-6xl p-4">
             <IngredientsBoard ingredients={view.ingredients ?? []} />
           </div>
-        ) : brewing || shopLike ? (
-          <BrewScreen view={view} onAction={onAction} pending={pending} error={error} hideActions={shopLike} />
+        ) : brewing || shopLike || rolling ? (
+          <BrewScreen view={view} onAction={onAction} pending={pending} error={error} hideActions={!brewing} roll={roll} />
         ) : (
           <PhaseScreen view={view} shownSeat={shownSeat} onAction={onAction} pending={pending} error={error} />
         )}
