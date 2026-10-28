@@ -120,7 +120,7 @@ export function Bag({
       const vw = window.innerWidth;
       const vh = window.innerHeight;
       const m = 8;
-      const width = Math.min(Math.max(r.width, 260), vw - 2 * m);
+      const width = Math.min(r.width, vw - 2 * m);
       const left = Math.min(Math.max(r.left, m), vw - width - m);
       const h = popRef.current?.getBoundingClientRect().height ?? 0;
       let top = r.bottom + 8;
