@@ -84,3 +84,16 @@ describe("bonus die", () => {
     expect(selected()).toBe("Ingredients");
   });
 });
+
+describe("shop dialogue timing", () => {
+  it("hides the shop dialogue during the roll, shows it with Ingredients after", async () => {
+    vi.useFakeTimers();
+    render(ui(await load("die")));
+    expect(dice()).toHaveLength(1);
+    expect(screen.queryByText("What would you like to buy?")).toBeNull();
+    act(() => vi.advanceTimersByTime(3000));
+    expect(dice()).toHaveLength(0);
+    expect(screen.getByText("What would you like to buy?")).toBeTruthy();
+    expect(selected()).toBe("Ingredients");
+  });
+});

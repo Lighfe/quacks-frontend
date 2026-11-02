@@ -38,7 +38,9 @@ export function ShopDialog({
   );
   const me = view.seats.find((s) => s.id === view.you);
   return (
-    <section className="torn-edge bg-parchment py-5 pl-[max(2rem,calc(4%+1rem))] pr-[max(2rem,calc(4%+1rem))] text-parchment-ink" aria-label="dialogue">
+    <section className="flex items-stretch" aria-label="dialogue" data-testid="shop-scroll">
+      <SideRod />
+      <div className="my-2 min-w-0 flex-1 border-y-4 border-parchment-shade bg-parchment px-5 py-4 text-parchment-ink">
       {me ? (
         <div data-testid="shop-status" className="mb-3 flex flex-wrap items-center gap-x-4 gap-y-1 font-pixel text-[10px]">
           <span data-testid="status-money" className="flex items-center gap-1">
@@ -46,7 +48,9 @@ export function ShopDialog({
             {me.money}
           </span>
           <span data-testid="status-points" className="flex items-center gap-1">
-            <PixelSymbol grid={STAR} unit={2} label="points" />
+            <span className="inline-flex" style={{ filter: "drop-shadow(1px 0 0 var(--parchment-ink)) drop-shadow(-1px 0 0 var(--parchment-ink)) drop-shadow(0 1px 0 var(--parchment-ink)) drop-shadow(0 -1px 0 var(--parchment-ink))" }}>
+              <PixelSymbol grid={STAR} unit={3} label="points" />
+            </span>
             {me.points}
           </span>
           <span data-testid="status-rubies" className="flex items-center gap-1">
@@ -95,6 +99,21 @@ export function ShopDialog({
         })}
       </div>
       {error ? <p className="mt-2 text-destructive">{error}</p> : null}
+      </div>
+      <SideRod />
     </section>
+  );
+}
+
+// Rolled side of the sideways scroll: vertical stepped rod with knobs.
+function SideRod() {
+  return (
+    <svg viewBox="0 0 6 64" preserveAspectRatio="none" shapeRendering="crispEdges" className="w-5 shrink-0 self-stretch" aria-hidden="true">
+      <rect x="1" y="0" width="4" height="3" fill="var(--parchment-ink)" />
+      <rect x="1" y="61" width="4" height="3" fill="var(--parchment-ink)" />
+      <rect x="0" y="3" width="6" height="58" fill="var(--parchment-shade)" />
+      <rect x="1" y="3" width="2" height="58" fill="var(--parchment)" />
+      <rect x="5" y="3" width="1" height="58" fill="var(--parchment-ink)" opacity="0.4" />
+    </svg>
   );
 }
