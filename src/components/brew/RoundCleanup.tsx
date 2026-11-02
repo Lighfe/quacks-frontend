@@ -9,6 +9,7 @@ export interface CleanupMemory {
   shownSeat: string | null;
   views: Map<string, View>;
   rounds: Set<number>;
+  boardRounds?: Set<number>;
 }
 
 export interface CleanupRound {
@@ -58,7 +59,7 @@ export function useRoundCleanup(view: View, shownSeat: string, shared?: MutableR
     return () => window.removeEventListener("keydown", block, true);
   }, [!!current]);
 
-  return { cleanup: current, advanced, finish: () => setActive(null) };
+  return { cleanup: current, advanced, previousRound: previous?.game.round ?? null, memory, finish: () => setActive(null) };
 }
 
 interface ReturnFlight {

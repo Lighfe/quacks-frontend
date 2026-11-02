@@ -1,11 +1,12 @@
 import type { View } from "@/lib/game-api";
 import { LogPanel } from "./LogPanel";
 import { PixelFrame } from "./PixelFrame";
+import { PointBoard } from "./PointBoard";
 
 export function EndScreen({ view, onNewGame }: { view: View; onNewGame: () => void }) {
   return (
     <main className="min-h-screen bg-background p-4 text-foreground">
-      <div className="mx-auto flex max-w-3xl flex-col gap-4">
+      <div className="mx-auto flex max-w-6xl flex-col gap-4">
         <PixelFrame title="Game over">
           <ul className="flex flex-col gap-1">
             {view.seats.map((s) => (
@@ -25,6 +26,7 @@ export function EndScreen({ view, onNewGame }: { view: View; onNewGame: () => vo
             New game
           </button>
         </PixelFrame>
+        {view.board ? <div data-testid="end-board"><PointBoard view={view} /></div> : null}
         <LogPanel log={view.log} />
       </div>
     </main>
