@@ -61,6 +61,21 @@ describe("point board tab", () => {
     expect(flames.filter((f) => f.getAttribute("data-state") === "lit").map((f) => f.getAttribute("data-round"))).toEqual(["5"]);
   });
 
+  it("every flame spans its full height and is at least 15% of the board height", async () => {
+    const { container } = openBoard(await getView(backendFromSearch({ mock: "board" }), "p1"));
+    const vbH = Number(container.querySelector('svg[aria-label="Point board"]')!.getAttribute("viewBox")!.split(" ")[3]);
+    const flames = [...container.querySelectorAll('[data-testid="flame"]')];
+    expect(new Set(flames.map((f) => f.getAttribute("data-state")))).toEqual(new Set(["lit", "burnt", "unlit"]));
+    for (const f of flames) {
+      const h = Number(f.getAttribute("data-height"));
+      expect(h).toBeGreaterThanOrEqual(0.15 * vbH);
+      const rects = [...f.querySelectorAll("rect")];
+      const top = Math.min(...rects.map((r) => Number(r.getAttribute("y"))));
+      const bottom = Math.max(...rects.map((r) => Number(r.getAttribute("y")) + Number(r.getAttribute("height"))));
+      expect(bottom - top).toBeCloseTo(h, 5);
+    }
+  });
+
   it("rat tails sit in the gap between their two tiles, including the wrap at 49", { timeout: 20000 }, async () => {
     const base = await getView(backendFromSearch({ mock: "board" }), "p1");
     const tails = [...board.rat_tails, 49];
