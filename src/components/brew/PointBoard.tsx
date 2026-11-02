@@ -37,7 +37,7 @@ function Pawn({ x, y, colour, unit }: { x: number; y: number; colour: string; un
 }
 
 // `step` replays a round change: first the old round's flame, then the new states.
-export function PointBoard({ view, step }: { view: View; step?: { from: number; lit: boolean } }) {
+export function PointBoard({ view, step }: { view: View; step?: { from: number; lit: boolean } | undefined }) {
   const board = view.board;
   if (!board || board.fields <= 0) {
     return <p className="p-6 text-center font-pixel text-xs text-muted-foreground">No point board in this game view</p>;
