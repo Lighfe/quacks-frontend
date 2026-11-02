@@ -8,7 +8,7 @@ import { PhaseScreen } from "./PhaseScreen";
 import { PixelSymbol, type PixelGrid } from "./pixel-icons";
 import { ShopDialog } from "./ShopDialog";
 import { RoundCardScroll } from "./RoundCardScroll";
-import { useBonusRoll, type PlayedRounds } from "./DieRoll";
+import { useBonusRoll, useCardRoll, type PlayedRounds } from "./DieRoll";
 import { EndScreen } from "./EndScreen";
 import { PointBoard } from "./PointBoard";
 import { useRoundCleanup, type CleanupMemory } from "./RoundCleanup";
@@ -33,6 +33,7 @@ export function TabbedGame({
   error,
   onNewGame = () => {},
   playedRounds,
+  playedCardRounds,
   cleanupMemory,
 }: {
   view: View;
@@ -42,12 +43,13 @@ export function TabbedGame({
   error: string | null;
   onNewGame?: () => void;
   playedRounds?: PlayedRounds;
+  playedCardRounds?: PlayedRounds;
   cleanupMemory?: MutableRefObject<CleanupMemory>;
 }) {
   const phase = view.game.phase;
   const { cleanup, advanced, previousRound, memory, finish } = useRoundCleanup(view, shownSeat, cleanupMemory);
-  const roll = useBonusRoll(view, playedRounds);
-  const rolling = roll !== null;
+  const resolveRoll = useBonusRoll(view, playedRounds);
+  const rolling = resolveRoll !== null;
   // Entering the shop opens Ingredients, but only once the last die is gone.
   const [tab, setTab] = useState<Tab>(phase === "shop" && !rolling ? "ingredients" : "cauldron");
   // Round-end point board step: after the clean-up, once per round change.
@@ -115,6 +117,11 @@ export function TabbedGame({
     setDismissedKey(cardKey);
     onAction(id);
   };
+
+  // Card-step rolls play only after this round's scroll has been closed.
+  const cardReady = !!card && cardKey === dismissedKey && !choosing && !reading && !cleanup && !liveStep && !rolling;
+  const cardRoll = useCardRoll(view, cardReady, playedCardRounds);
+  const roll = resolveRoll ?? cardRoll;
 
   const brewing = phase === "brew" || phase === "brewing";
   const shopLike = phase === "shop" || phase === "ruby";
