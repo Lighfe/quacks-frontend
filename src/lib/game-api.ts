@@ -141,7 +141,7 @@ export interface BackendConfig {
   mock?: StaticMock;
 }
 
-export const STATIC_MOCKS = ["playtest", "playtest-zero", "playtest-small-bag", "shop", "ruby", "card", "card-choice", "die", "die-opponent", "die-tie", "board", "round-end"] as const;
+export const STATIC_MOCKS = ["playtest", "playtest-zero", "playtest-small-bag", "shop", "ruby", "card", "card-choice", "die", "die-opponent", "die-tie", "board", "round-end", "game-over"] as const;
 export type StaticMock = (typeof STATIC_MOCKS)[number];
 
 export const DEFAULT_API_BASE = "http://localhost:8000";
@@ -220,6 +220,7 @@ export async function createGame(baseUrl: string, body: CreateGameBody): Promise
 }
 
 export function getView(backend: BackendConfig, seat: string): Promise<View> {
+  if (backend.kind === "mock" && backend.mock === "game-over") return Promise.resolve(gameOverView);
   if (backend.kind === "mock" && backend.mock === "round-end") return Promise.resolve(roundEndState ? roundEndNextView : roundEndView);
   if (backend.kind === "mock" && backend.mock && backend.mock in DIE_MOCKS) return Promise.resolve(DIE_MOCKS[backend.mock as keyof typeof DIE_MOCKS]);
   if (backend.kind === "mock" && backend.mock === "board") return Promise.resolve(boardView);
@@ -240,6 +241,7 @@ export function sendAction(
   action: string,
   revision: number,
 ): Promise<View> {
+  if (backend.kind === "mock" && backend.mock === "game-over") return Promise.resolve(gameOverView);
   if (backend.kind === "mock" && backend.mock === "round-end") {
     if (action === "done") roundEndState = true;
     return getView(backend, seat);
@@ -581,11 +583,18 @@ const rubyView: View = {
   ],
 };
 
+const MOCK_BOARD = {
+  fields: 50,
+  laps: 2,
+  rat_tails: [1, 4, 7, 10, 12, 14, 16, 18, 20, 22, 24, 26, 28, 30, 32, 34, 36, 38, 40, 42, 44, 46, 48],
+};
+
 // Two literal snapshots; Done selects round 2 for the rest of this page session.
 let roundEndState = false;
 const roundEndView: View = {
   ...rubyView,
   legal: [{ id: "done", label: "Done" }],
+  board: MOCK_BOARD,
 };
 const roundEndNextView: View = {
   ...roundEndView,
@@ -602,6 +611,7 @@ const roundEndNextView: View = {
   ],
   window: mockWindow(6),
   legal: [{ id: "draw", label: "Draw" }, { id: "stop", label: "Stop" }],
+  board: MOCK_BOARD,
 };
 
 // Static round card fixtures (mock data only).
@@ -668,9 +678,14 @@ const boardView: View = {
   ...playtestView,
   game: { ...playtestView.game, round: 5, rounds: 9 },
   seats: playtestView.seats.map((s) => ({ ...s, points: s.id === "p1" ? 23 : 57 })),
-  board: {
-    fields: 50,
-    laps: 2,
-    rat_tails: [1, 4, 7, 10, 12, 14, 16, 18, 20, 22, 24, 26, 28, 30, 32, 34, 36, 38, 40, 42, 44, 46, 48],
-  },
+  board: MOCK_BOARD,
+};
+
+// Static finished game fixture (mock data only).
+const gameOverView: View = {
+  ...boardView,
+  game: { ...boardView.game, round: 9, rounds: 9, phase: "game_over", card: null, winner: "p2" },
+  seats: boardView.seats.map((s) => ({ ...s, status: "done", points: s.id === "p1" ? 61 : 74, pot: [] })),
+  to_act: [],
+  legal: [],
 };
