@@ -172,7 +172,7 @@ export function TabbedGame({
           <div className="mx-auto max-w-6xl p-4">
             <IngredientsBoard ingredients={view.ingredients ?? []} />
           </div>
-        ) : brewing || shopLike || rolling || cleanup ? (
+        ) : brewing || shopLike || roll || cleanup ? (
           <BrewScreen key={`${view.you}:${view.game.round}`} view={view} onAction={onAction} pending={pending || !!cleanup} error={error} hideActions={!brewing || !!cleanup} roll={roll} cleanupPot={cleanup?.pot} onCleanupDone={finish} />
         ) : (
           <PhaseScreen view={view} shownSeat={shownSeat} onAction={onAction} pending={pending} error={error} />
