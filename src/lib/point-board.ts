@@ -19,11 +19,11 @@ export function flameState(i: number, round: number): "lit" | "burnt" | "unlit" 
   return i === round ? "lit" : i < round ? "burnt" : "unlit";
 }
 
-// Tiles run clockwise around the edge of a w x h grid, starting top-left.
-// w and h are chosen so the ring has exactly `fields` cells when possible.
+// Tiles run clockwise around the edge of a wide w x h grid (w about 2h), starting top-left.
+// The ring has exactly `fields` cells when `fields` is even.
 export function frameCells(fields: number): { w: number; h: number; cells: { col: number; row: number }[] } {
   const half = Math.max(4, Math.ceil((fields + 4) / 2));
-  const h = Math.max(2, Math.floor(half / 2));
+  const h = Math.max(2, Math.round(half / 3));
   const w = half - h;
   const ring: { col: number; row: number }[] = [];
   for (let c = 0; c < w - 1; c++) ring.push({ col: c, row: 0 });
