@@ -14,7 +14,7 @@ const RAT_FILL: Record<string, string> = {
 };
 const FLAME_LIT: PixelGrid = ["..y..", ".yoy.", ".yoy.", "yoroy", "yorry", ".ooo.", "ggggg"];
 const FLAME_BURNT: PixelGrid = ["..g..", ".....", "..g..", ".g.g.", ".ggg.", ".ggg.", "ggggg"];
-const FLAME_UNLIT: PixelGrid = [".....", ".....", "..w..", "..w..", ".www.", ".www.", "ggggg"];
+const FLAME_UNLIT: PixelGrid = ["..g..", "..g..", "..w..", "..w..", ".www.", ".www.", "ggggg"];
 const PAWN: string[] = ["..x..", ".xxx.", "..x..", ".xxx.", "xxxxx"];
 const SEAT_COLOURS = ["var(--chip-red)", "var(--chip-blue)", "var(--chip-yellow)", "var(--chip-green)"];
 
@@ -49,8 +49,8 @@ export function PointBoard({ view }: { view: View }) {
     return { x: c.col * CELL + CELL / 2, y: c.row * CELL + CELL / 2, col: c.col, row: c.row };
   };
   const rounds = view.game.rounds;
-  const gap = 3;
-  const flameUnit = Math.min(0.17 * (height + 2 * M) / 7, (width - 2 * CELL - 8 - (rounds - 1) * gap) / rounds / 5);
+  const gap = 1.5;
+  const flameUnit = Math.min(0.19 * (height + 2 * M) / 7, (width - 2 * CELL - 8 - (rounds - 1) * gap) / rounds / 5);
   const fw = 5 * flameUnit;
   const totalW = rounds * fw + (rounds - 1) * gap;
 
