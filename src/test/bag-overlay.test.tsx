@@ -6,7 +6,7 @@ import { backendFromSearch, getView } from "@/lib/game-api";
 
 afterEach(cleanup);
 
-async function renderMock(mock: string) {
+async function renderMock(mock: "playtest" | "shop" | "round-end") {
   const view = await getView(backendFromSearch({ mock }), "p1");
   render(<BrewScreen view={view} onAction={() => {}} pending={false} error={null} />);
   return view;
@@ -33,7 +33,7 @@ describe("own status outside the bag overlay", () => {
 describe("own bag overlay", () => {
   it("opens by click/Enter/Space, closes by Escape and second click, focus returns", async () => {
     await renderMock("playtest");
-    const [trigger] = screen.getAllByTestId("bag-sack");
+    const trigger = screen.getAllByTestId("bag-sack")[0]!;
     fireEvent.click(trigger);
     expect(trigger).toHaveAttribute("aria-expanded", "true");
     expect(screen.getByTestId("bag-popup")).toBeInTheDocument();
