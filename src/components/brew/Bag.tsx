@@ -125,7 +125,7 @@ export function Bag({
       if (scope) {
         const b = scope.getBoundingClientRect();
         const width = Math.min(440, b.width - 16, vw0 - 16);
-        const left = Math.max(8, Math.min(b.left + 8, vw0 - width - 8));
+        const left = Math.max(8, Math.min(b.right - width - 8, vw0 - width - 8));
         const top = Math.max(8, b.top + 8);
         setPos({ left, top, width, maxHeight: Math.max(120, b.bottom - top - 8) });
         return;
