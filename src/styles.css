@@ -279,3 +279,10 @@
 @utility torn-edge {
   clip-path: polygon(0% 4%, 6% 0%, 14% 3%, 22% 0%, 35% 2%, 48% 0%, 60% 3%, 72% 0%, 84% 2%, 94% 0%, 100% 5%, 98% 18%, 100% 32%, 97% 50%, 100% 66%, 98% 82%, 100% 96%, 90% 100%, 78% 97%, 64% 100%, 50% 97%, 36% 100%, 24% 97%, 12% 100%, 2% 97%, 0% 84%, 2% 66%, 0% 48%, 3% 30%, 0% 16%);
 }
+
+/* Round-end point board flames: stepped burn-out and ignition. */
+@keyframes flame-burnout { 0% { opacity: 1; } 30% { opacity: 0.8; } 60% { opacity: 1; } 100% { opacity: 0.5; } }
+@keyframes flame-light { 0% { opacity: 0; transform: translateY(2px); } 50% { opacity: 0.6; } 100% { opacity: 1; transform: none; } }
+.flame-burnout { animation: flame-burnout 700ms steps(6, end) both; }
+.flame-light { animation: flame-light 700ms steps(6, end) 300ms both; transform-box: fill-box; }
+@media (prefers-reduced-motion: reduce) { .flame-burnout, .flame-light { animation: none; } }

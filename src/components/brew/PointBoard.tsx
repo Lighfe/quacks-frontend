@@ -36,7 +36,8 @@ function Pawn({ x, y, colour, unit }: { x: number; y: number; colour: string; un
   );
 }
 
-export function PointBoard({ view }: { view: View }) {
+// `step` replays a round change: first the old round's flame, then the new states.
+export function PointBoard({ view, step }: { view: View; step?: { from: number; lit: boolean } | undefined }) {
   const board = view.board;
   if (!board || board.fields <= 0) {
     return <p className="p-6 text-center font-pixel text-xs text-muted-foreground">No point board in this game view</p>;
@@ -120,11 +121,12 @@ export function PointBoard({ view }: { view: View }) {
         <g>
           {Array.from({ length: rounds }, (_, k) => {
             const r = k + 1;
-            const state = flameState(r, view.game.round);
+            const state = flameState(r, step && !step.lit ? step.from : view.game.round);
+            const change = step?.lit ? (r === step.from ? "flame-burnout" : r === view.game.round ? "flame-light" : undefined) : undefined;
             const grid = state === "lit" ? FLAME_LIT : state === "burnt" ? FLAME_BURNT : FLAME_UNLIT;
             const x = width / 2 - totalW / 2 + k * (fw + gap);
             return (
-              <g key={r} data-testid="flame" data-round={r} data-state={state} data-height={7 * flameUnit} opacity={state === "burnt" ? 0.5 : 1}>
+              <g key={r} data-testid="flame" data-round={r} data-state={state} data-height={7 * flameUnit} opacity={state === "burnt" ? 0.5 : 1} className={change}>
                 <PixelIcon grid={grid} x={x} y={height / 2 - 3.5 * flameUnit} unit={flameUnit} />
               </g>
             );

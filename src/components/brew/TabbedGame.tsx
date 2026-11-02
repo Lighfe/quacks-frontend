@@ -19,6 +19,9 @@ const BOOK_ICON: PixelGrid = [".ppppp.", "pwwwwwp", "pwgggwp", "pwwwwwp", "pwggg
 
 const BOARD_ICON: PixelGrid = ["wwwwwww", "w.....w", "w.r.b.w", "w.....w", "w.....w", "w.....w", "wwwwwww"];
 
+const BOARD_DARK_MS = 900;
+const BOARD_STEP_MS = 2400;
+
 type Tab = "cauldron" | "ingredients" | "board";
 
 // Two tabs over every phase; the shop phase opens Ingredients by itself.
@@ -42,15 +45,40 @@ export function TabbedGame({
   cleanupMemory?: MutableRefObject<CleanupMemory>;
 }) {
   const phase = view.game.phase;
-  const { cleanup, advanced, finish } = useRoundCleanup(view, shownSeat, cleanupMemory);
+  const { cleanup, advanced, previousRound, memory, finish } = useRoundCleanup(view, shownSeat, cleanupMemory);
   const roll = useBonusRoll(view, playedRounds);
   const rolling = roll !== null;
   // Entering the shop opens Ingredients, but only once the last die is gone.
   const [tab, setTab] = useState<Tab>(phase === "shop" && !rolling ? "ingredients" : "cauldron");
-  const shownTab = advanced || cleanup ? "cauldron" : tab;
+  // Round-end point board step: after the clean-up, once per round change.
+  const [step, setStep] = useState<{ round: number; from: number; lit: boolean } | null>(null);
+  const reduced = typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const liveStep = step && step.round === view.game.round && phase !== "game_over" ? step : null;
+  const showingStep = !!liveStep && !cleanup;
+  const shownTab = showingStep ? "board" : advanced || cleanup ? "cauldron" : tab;
   useLayoutEffect(() => {
-    if (advanced) setTab("cauldron");
+    if (!advanced) return;
+    setTab("cauldron");
+    const seen = (memory.current.boardRounds ??= new Set());
+    if (phase === "game_over" || !view.board || reduced || previousRound === null || seen.has(view.game.round)) return;
+    seen.add(view.game.round);
+    setStep({ round: view.game.round, from: previousRound, lit: false });
   }, [advanced]);
+  useEffect(() => {
+    if (!showingStep) return;
+    const light = setTimeout(() => setStep((s) => (s ? { ...s, lit: true } : s)), BOARD_DARK_MS);
+    const end = setTimeout(() => {
+      setStep(null);
+      setTab("cauldron");
+    }, BOARD_STEP_MS);
+    const block = (event: KeyboardEvent) => event.stopPropagation();
+    window.addEventListener("keydown", block, true);
+    return () => {
+      clearTimeout(light);
+      clearTimeout(end);
+      window.removeEventListener("keydown", block, true);
+    };
+  }, [showingStep]);
   const prevPhase = useRef(phase);
   const wantShop = useRef(phase === "shop" && rolling);
   useEffect(() => {
@@ -98,7 +126,10 @@ export function TabbedGame({
       role="tab"
        aria-selected={shownTab === id}
        disabled={!!cleanup}
-      onClick={() => setTab(id)}
+      onClick={() => {
+        setStep(null);
+        setTab(id);
+      }}
       className={cn(
         "pixel-border flex items-center gap-2 px-4 py-2 font-pixel text-[10px] uppercase",
          shownTab === id ? "bg-card text-accent" : "bg-background text-muted-foreground",
@@ -129,7 +160,7 @@ export function TabbedGame({
       </div>
       <div className="min-h-0 flex-1 pb-24">
         {shownTab === "board" ? (
-          <PointBoard view={view} />
+          <PointBoard view={view} step={showingStep && liveStep ? { from: liveStep.from, lit: liveStep.lit } : undefined} />
         ) : shownTab === "ingredients" ? (
           <div className="mx-auto max-w-6xl p-4">
             <IngredientsBoard ingredients={view.ingredients ?? []} />
@@ -140,7 +171,7 @@ export function TabbedGame({
           <PhaseScreen view={view} shownSeat={shownSeat} onAction={onAction} pending={pending} error={error} />
         )}
       </div>
-      {card && scrollMode && !cleanup ? (
+      {card && scrollMode && !cleanup && !liveStep ? (
         <RoundCardScroll
           text={card.text}
           mode={scrollMode}
