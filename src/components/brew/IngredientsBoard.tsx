@@ -166,7 +166,7 @@ function Note({ ing }: { ing: Ingredient }) {
       data-testid={`note-${ing.colour}`}
       data-faded={faded ? "true" : "false"}
       data-variant={`v${v}`}
-      className={cn("relative pt-5", faded && "opacity-40 grayscale")}
+      className={cn("relative pt-5", faded && "opacity-60 saturate-[.8]")}
       style={{ transform: `rotate(${TILTS[v]}deg)` }}
     >
       <div className="relative px-5 pb-6 pt-6 text-parchment-ink">
