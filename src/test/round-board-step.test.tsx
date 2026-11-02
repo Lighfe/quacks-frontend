@@ -10,11 +10,15 @@ afterEach(() => {
   vi.useRealTimers();
 });
 
+let cached: { before: View; after: View } | null = null;
+// The round-end mock keeps its round for the page session, so read it once.
 async function roundEnd() {
+  if (cached) return cached;
   const backend = backendFromSearch({ mock: "round-end" });
   const before = await getView(backend, "p1");
   const after = await sendAction(backend, "p1", "done", before.game.revision);
-  return { before, after };
+  cached = { before, after };
+  return cached;
 }
 
 function setup(view: View) {
