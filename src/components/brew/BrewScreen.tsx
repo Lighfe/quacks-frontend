@@ -40,6 +40,7 @@ export function BrewScreen({
   // chips can also leave the pot.
   const seenOrders = useRef(new Map<string, Set<number>>());
   const ownPanelRef = useRef<HTMLDivElement>(null);
+  const potRef = useRef<HTMLDivElement>(null);
   const [panelReady, setPanelReady] = useState(false);
   useLayoutEffect(() => setPanelReady(true), []);
   const startedFlight = useRef<View | null>(null);
@@ -88,8 +89,18 @@ export function BrewScreen({
         <div className="flex flex-col gap-4 lg:flex-row">
           <div ref={ownPanelRef} className="flex flex-1 flex-col gap-4">
             <PixelFrame>
-              <div className="flex flex-col gap-4 md:flex-row">
-                <div className="relative w-full min-w-0 md:flex-1">
+              <div className="flex flex-col gap-3">
+                <div data-testid="own-status" className="flex flex-wrap items-center justify-between gap-x-6 gap-y-2">
+                  <WhiteMeter
+                    whiteTotal={youSeat.white_total}
+                    limit={view.game.explosion_limit}
+                  />
+                  <Stats seat={youSeat} />
+                  <div className="w-24 shrink-0">
+                    <Bag bag={youSeat.bag} chips={view.chips} overlayScope={potRef} />
+                  </div>
+                </div>
+                <div ref={potRef} className="relative w-full min-w-0">
                 <Pot
                   pot={cleanupPot ?? youSeat.pot}
                   window={view.window}
@@ -101,14 +112,6 @@ export function BrewScreen({
                   className="w-full"
                 />
                 {roll && roll.entry.seat === view.you ? <DieRoll key={roll.key} roll={roll} cauldron="own" /> : null}
-                </div>
-                <div className="flex w-full shrink-0 flex-col gap-3 md:w-56">
-                  <WhiteMeter
-                    whiteTotal={youSeat.white_total}
-                    limit={view.game.explosion_limit}
-                  />
-                  <Stats seat={youSeat} />
-                  <Bag bag={youSeat.bag} chips={view.chips} />
                 </div>
               </div>
             </PixelFrame>

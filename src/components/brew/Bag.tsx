@@ -1,4 +1,4 @@
-import { useEffect, useId, useLayoutEffect, useRef, useState } from "react";
+import { type RefObject, useEffect, useId, useLayoutEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 
 import type { ChipType } from "@/lib/game-api";
@@ -89,11 +89,15 @@ export function Bag({
   bag,
   chips,
   small = false,
+  overlayScope,
 }: {
   bag: Record<string, number>;
   chips: ChipType[];
   small?: boolean;
+  /** When given, the open sack is laid over this element (e.g. the pot). */
+  overlayScope?: RefObject<HTMLElement | null>;
 }) {
+  const buttonRef = useRef<HTMLButtonElement>(null);
   const [open, setOpen] = useState(false);
   const hoverOpened = useRef(false);
   const popId = useId();
@@ -104,7 +108,7 @@ export function Bag({
   const wrapRef = useRef<HTMLDivElement>(null);
   const popRef = useRef<HTMLDivElement>(null);
   const closeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const [pos, setPos] = useState<{ left: number; top: number; width: number } | null>(null);
+  const [pos, setPos] = useState<{ left: number; top: number; width: number; maxHeight?: number } | null>(null);
 
   // Fixed-position popup in a portal: never clipped by panel frames, always on top.
   // Below the bag when it fits, else above, else clamped into the viewport.
@@ -116,6 +120,16 @@ export function Bag({
     const place = () => {
       const wrap = wrapRef.current;
       if (!wrap) return;
+      const vw0 = window.innerWidth;
+      const scope = overlayScope?.current;
+      if (scope) {
+        const b = scope.getBoundingClientRect();
+        const width = Math.min(440, b.width - 16, vw0 - 16);
+        const left = Math.max(8, Math.min(b.right - width - 8, vw0 - width - 8));
+        const top = Math.max(8, b.top + 8);
+        setPos({ left, top, width, maxHeight: Math.max(120, b.bottom - top - 8) });
+        return;
+      }
       const r = wrap.getBoundingClientRect();
       const vw = window.innerWidth;
       const vh = window.innerHeight;
@@ -173,7 +187,11 @@ export function Bag({
   useEffect(() => {
     if (!open) return;
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setOpen(false);
+      if (e.key === "Escape") {
+        hoverOpened.current = false;
+        setOpen(false);
+        buttonRef.current?.focus();
+      }
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
@@ -198,6 +216,7 @@ export function Bag({
       onPointerLeave={onLeave}
     >
       <button
+        ref={buttonRef}
         type="button"
         data-testid="bag-sack"
         aria-label="Bag"
@@ -209,6 +228,7 @@ export function Bag({
             e.preventDefault();
             toggle();
           } else if (e.key === "Escape") {
+            hoverOpened.current = false;
             setOpen(false);
           }
         }}
@@ -232,6 +252,8 @@ export function Bag({
                 left: pos?.left ?? 0,
                 top: pos?.top ?? 0,
                 width: pos?.width,
+                maxHeight: pos?.maxHeight,
+                overflowY: pos?.maxHeight ? "auto" : undefined,
                 visibility: pos ? "visible" : "hidden",
               }}
               className="z-[100] max-w-[calc(100vw-1rem)]"
