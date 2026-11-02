@@ -18,11 +18,11 @@ export const NOTE_VARIANT: Record<ChipColour, number> = {
 const W = 40;
 const H = 32;
 const TILTS = [-1.5, 1, -0.5, 2, -2, 0.5, 1.5, -1];
-// Seal place: [x cell, y cell, kind]
-const SEALS: [number, number, "wax" | "pin"][] = [
-  [18, 0, "wax"], [3, 1, "pin"], [33, 0, "wax"], [19, 1, "pin"],
-  [4, 0, "wax"], [32, 1, "pin"], [17, 0, "wax"], [30, 0, "wax"],
-];
+// Main paper colours per note; explicit so yellow and purple read clearly.
+const PAPER: Partial<Record<ChipColour, { paper: string; edge: string }>> = {
+  yellow: { paper: "hsl(52 78% 66%)", edge: "hsl(44 62% 48%)" },
+  purple: { paper: "hsl(282 42% 64%)", edge: "hsl(282 34% 44%)" },
+};
 
 function rng(seed: number) {
   let s = (seed * 2654435761) >>> 0 || 1;
@@ -78,54 +78,37 @@ function noteShape(v: number) {
   return { paper, edge, stains, specks, burnt };
 }
 
-// o = outer rim, a = dark wax edge, b = wax, c = embossed mark, d = shadow, h = highlight.
-const WAX: string[] = [
-  "...oooo.....",
-  "..oaaaaoo...",
-  ".oabbbbaaoo.",
-  "oabhhbbbbbao",
-  "oabhbccbbbao",
-  "oabbcbbcbdao",
-  "oabbcbbcbdao",
-  ".oabbccbbdao",
-  ".oabbbbbddao",
-  "..oadbbddao.",
-  "...oaadaoo..",
-  "....oado....",
-  ".....oao....",
-  "......o.....",
-];
+// Pin: round head (o rim, a dark, b body, h highlight) and a thin needle (k).
 const PIN: string[] = [
   "..oooo..",
+  ".obbbbo.",
+  "obhhbbao",
+  "obhbbbao",
+  "obbbbaao",
   ".oaaaao.",
-  "oahhbbao",
-  "oahbbbdo",
-  "oabbbddo",
-  ".oaddao.",
   "..oooo..",
   "...kk...",
   "...kk...",
-  "....k...",
+  "...kk...",
+  "...k....",
+  "...k....",
 ];
 const DARK: ChipColour[] = ["black", "purple"];
 
-function Seal({ colour, kind }: { colour: ChipColour; kind: "wax" | "pin" }) {
+function Pin({ colour }: { colour: ChipColour }) {
   const c = `var(--chip-${colour})`;
   const dark = DARK.includes(colour);
   const fill: Record<string, string> = {
     o: dark ? "var(--muted-foreground)" : "var(--sack-outline)",
-    a: `color-mix(in oklch, ${c} 60%, var(--background))`,
+    a: `color-mix(in oklch, ${c} 65%, var(--background))`,
     b: c,
-    c: `color-mix(in oklch, ${c} 65%, var(--background))`,
-    d: `color-mix(in oklch, ${c} 78%, var(--background))`,
     h: `color-mix(in oklch, ${c} ${dark ? 40 : 50}%, var(--foreground))`,
     k: "var(--sack-outline)",
   };
-  const grid = kind === "wax" ? WAX : PIN;
   const u = 3;
   return (
-    <svg aria-hidden width={grid[0]!.length * u} height={grid.length * u} shapeRendering="crispEdges" className="block">
-      {grid.flatMap((row, j) =>
+    <svg aria-hidden data-testid="note-pin" width={PIN[0]!.length * u} height={PIN.length * u} shapeRendering="crispEdges" className="block">
+      {PIN.flatMap((row, j) =>
         Array.from(row).map((ch, i) =>
           fill[ch] ? <rect key={`${i}-${j}`} x={i * u} y={j * u} width={u} height={u} fill={fill[ch]} /> : null,
         ),
@@ -175,7 +158,7 @@ function Note({ ing }: { ing: Ingredient }) {
   const v = NOTE_VARIANT[ing.colour];
   const faded = isNoteFaded(ing);
   const shape = noteShape(v);
-  const [sx, sy, kind] = SEALS[v]!;
+  const paper = PAPER[ing.colour];
   const rects = (cells: Cell[], fill: string, op = 1) =>
     cells.map(([x, y]) => <rect key={`${x}-${y}`} x={x} y={y} width={1.02} height={1.02} fill={fill} opacity={op} />);
   return (
@@ -195,17 +178,14 @@ function Note({ ing }: { ing: Ingredient }) {
           className="absolute inset-0 h-full w-full"
           style={{ filter: "drop-shadow(3px 3px 0 var(--pixel-shadow))" }}
         >
-          {rects(shape.paper, "var(--parchment)")}
-          {rects(shape.edge, "var(--parchment-shade)")}
+          {rects(shape.paper, paper?.paper ?? "var(--parchment)")}
+          {rects(shape.edge, paper?.edge ?? "var(--parchment-shade)")}
           {rects(shape.stains, "var(--parchment-shade)", 0.55)}
           {rects(shape.specks, "var(--sack-shade)", 0.7)}
           {rects(shape.burnt, "var(--sack-outline)", 0.8)}
         </svg>
-        <span
-          className="absolute z-10 -translate-x-1/2"
-          style={{ left: `${(sx / W) * 100}%`, top: `${sy * 3 - 18}px` }}
-        >
-          <Seal colour={ing.colour} kind={kind} />
+        <span className="absolute left-1/2 top-[-14px] z-10 -translate-x-1/2">
+          <Pin colour={ing.colour} />
         </span>
         <Sigil v={v} />
         <div className="relative grid grid-cols-3 gap-2">

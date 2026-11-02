@@ -151,7 +151,7 @@ export function TabbedGame({
           onClose={closeScroll}
         />
       ) : null}
-      {shopLike ? (
+      {shopLike && !rolling ? (
         <div className="sticky bottom-0 z-20 bg-background mx-auto w-full max-w-6xl px-4 pb-4">
           <ShopDialog view={view} onAction={onAction} pending={pending} error={error} />
         </div>
