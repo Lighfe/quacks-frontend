@@ -57,6 +57,7 @@ export interface GameInfo {
   card: RoundCard | null;
   winner: string | null;
   last_roll?: LastRoll | null;
+  card_roll?: LastRoll | null;
 }
 
 export interface DieRollEntry {
@@ -141,7 +142,7 @@ export interface BackendConfig {
   mock?: StaticMock;
 }
 
-export const STATIC_MOCKS = ["playtest", "playtest-zero", "playtest-small-bag", "shop", "ruby", "card", "card-choice", "die", "die-opponent", "die-tie", "board", "round-end", "game-over"] as const;
+export const STATIC_MOCKS = ["playtest", "playtest-zero", "playtest-small-bag", "shop", "ruby", "card", "card-choice", "die", "die-opponent", "die-tie", "card-everyone-rolls", "board", "round-end", "game-over"] as const;
 export type StaticMock = (typeof STATIC_MOCKS)[number];
 
 export const DEFAULT_API_BASE = "http://localhost:8000";
@@ -671,7 +672,22 @@ const dieTieView: View = {
     },
   },
 };
-const DIE_MOCKS = { die: dieView, "die-opponent": dieOpponentView, "die-tie": dieTieView };
+const cardEveryoneRollsView: View = {
+  ...playtestView,
+  game: {
+    ...playtestView.game,
+    phase: "brewing",
+    card: { id: "card_12", effect: "everyone_rolls", text: "Every player rolls the bonus die." },
+    card_roll: {
+      round: playtestView.game.round,
+      rolls: [
+        { seat: "p1", face: "point_1", text: "+1 point" },
+        { seat: "p2", face: "ruby_1", text: "+1 ruby" },
+      ],
+    },
+  },
+};
+const DIE_MOCKS = { die: dieView, "die-opponent": dieOpponentView, "die-tie": dieTieView, "card-everyone-rolls": cardEveryoneRollsView };
 
 // Static point board fixture (mock data only).
 const boardView: View = {

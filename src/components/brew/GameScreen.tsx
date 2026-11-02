@@ -87,6 +87,7 @@ export function GameScreen({
 
   // Rounds whose bonus roll already played; survives TabbedGame remounts.
   const playedRounds = useRef(new Set<number>());
+  const playedCardRounds = useRef(new Set<number>());
   const cleanupMemory = useRef<CleanupMemory>({ shownSeat: null, views: new Map(), rounds: new Set() });
   const [notice, setNotice] = useState<string | null>(null);
   // Synchronous guard: a second click before re-render must not send.
@@ -158,6 +159,6 @@ export function GameScreen({
     );
   }
   return (
-    <TabbedGame view={view} shownSeat={shownSeat} onAction={act} pending={pending} error={notice} onNewGame={onNewGame} playedRounds={playedRounds} cleanupMemory={cleanupMemory} />
+    <TabbedGame view={view} shownSeat={shownSeat} onAction={act} pending={pending} error={notice} onNewGame={onNewGame} playedRounds={playedRounds} playedCardRounds={playedCardRounds} cleanupMemory={cleanupMemory} />
   );
 }

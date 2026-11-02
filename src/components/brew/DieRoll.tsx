@@ -1,6 +1,6 @@
 import { useEffect, useLayoutEffect, useRef, useState, type MutableRefObject } from "react";
 
-import type { DieRollEntry, View } from "@/lib/game-api";
+import type { DieRollEntry, LastRoll, View } from "@/lib/game-api";
 import { GEM, PixelSymbol, STAR, type PixelGrid } from "./pixel-icons";
 import { useReducedMotion } from "./Pot";
 
@@ -32,17 +32,27 @@ export type PlayedRounds = MutableRefObject<Set<number>>;
 
 // The played-rounds memory may be owned by a parent so it survives remounts.
 export function useBonusRoll(view: View, playedRounds?: PlayedRounds): ActiveRoll | null {
+  return useRollSequence(view.game.last_roll, view.game.round, ROLL_PHASES.has(view.game.phase), playedRounds, "r");
+}
+
+// Plays view.game.card_roll once per round in this page session, only while
+// `ready` (the round card scroll of this round has been closed).
+export function useCardRoll(view: View, ready: boolean, playedRounds?: PlayedRounds): ActiveRoll | null {
+  return useRollSequence(view.game.card_roll, view.game.round, ready && view.game.phase !== "game_over", playedRounds, "c");
+}
+
+function useRollSequence(
+  last: LastRoll | null | undefined,
+  round: number,
+  eligible: boolean,
+  playedRounds: PlayedRounds | undefined,
+  prefix: string,
+): ActiveRoll | null {
   const reduced = useReducedMotion();
   const ownPlayed = useRef(new Set<number>());
   const played = playedRounds ?? ownPlayed;
   const [state, setState] = useState<{ round: number; rolls: DieRollEntry[]; index: number } | null>(null);
-  const last = view.game.last_roll;
-  const fresh =
-    !!last &&
-    last.rolls.length > 0 &&
-    last.round === view.game.round &&
-    ROLL_PHASES.has(view.game.phase) &&
-    !played.current.has(last.round);
+  const fresh = !!last && last.rolls.length > 0 && last.round === round && eligible && !played.current.has(last.round);
   // Shown from the first render (derived), recorded in a layout effect.
   const current = state ?? (fresh && last ? { round: last.round, rolls: last.rolls, index: 0 } : null);
   useLayoutEffect(() => {
@@ -59,7 +69,7 @@ export function useBonusRoll(view: View, playedRounds?: PlayedRounds): ActiveRol
   }, [state, reduced]);
   if (!current) return null;
   const entry = current.rolls[current.index];
-  return entry ? { entry, key: `${current.round}:${current.index}` } : null;
+  return entry ? { entry, key: `${prefix}${current.round}:${current.index}` } : null;
 }
 
 export function DieRoll({ roll, cauldron }: { roll: ActiveRoll; cauldron: "own" | "other" }) {
