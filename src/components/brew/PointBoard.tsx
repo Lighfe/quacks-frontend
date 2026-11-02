@@ -60,7 +60,7 @@ export function PointBoard({ view }: { view: View }) {
     <div className="mx-auto flex w-full max-w-6xl flex-col items-center gap-3 p-3">
       <svg
         viewBox={`${-M} ${-M} ${width + 2 * M} ${height + 2 * M}`}
-        className="w-full max-h-[calc(100vh-200px)]"
+        className="w-full max-h-[calc(100vh-250px)]"
         role="img"
         aria-label="Point board"
         shapeRendering="crispEdges"

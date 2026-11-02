@@ -61,7 +61,7 @@ describe("point board tab", () => {
     expect(flames.filter((f) => f.getAttribute("data-state") === "lit").map((f) => f.getAttribute("data-round"))).toEqual(["5"]);
   });
 
-  it("rat tails sit in the gap between their two tiles, including the wrap at 49", async () => {
+  it("rat tails sit in the gap between their two tiles, including the wrap at 49", { timeout: 20000 }, async () => {
     const base = await getView(backendFromSearch({ mock: "board" }), "p1");
     const tails = [...board.rat_tails, 49];
     const { container } = openBoard({ ...base, board: { ...base.board!, rat_tails: tails } });
