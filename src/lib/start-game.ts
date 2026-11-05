@@ -3,14 +3,6 @@
 
 import type { CreateGameBody } from "./game-api";
 
-export const SEAT_KINDS = [
-  "human",
-  "bot:random",
-  "bot:draw20-pts1-points",
-  "bot:draw30-pts4-balanced",
-  "bot:draw20-pts4-blue",
-] as const;
-
 export function parseRounds(input: string): number | null {
   const s = input.trim();
   if (!/^\d+$/.test(s)) return null;

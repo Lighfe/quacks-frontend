@@ -1,7 +1,13 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
-import { createGame, formatCreateGameError, resolveApiBase } from "@/lib/game-api";
-import { SEAT_KINDS, buildCreateBody, gameSearchAfterCreate, type GameSearch } from "@/lib/start-game";
+import {
+  createGame,
+  formatCreateGameError,
+  getOpponents,
+  resolveApiBase,
+  type Opponent,
+} from "@/lib/game-api";
+import { buildCreateBody, gameSearchAfterCreate, type GameSearch } from "@/lib/start-game";
 import { PixelFrame } from "./PixelFrame";
 
 const field = "pixel-border bg-input px-2 py-1 text-foreground";
@@ -16,10 +22,39 @@ export function StartScreen({
   onStarted: (search: GameSearch) => void;
 }) {
   const [p1, setP1] = useState("human");
-  const [p2, setP2] = useState("bot:random");
+  const [p2, setP2] = useState("");
+  const [opponents, setOpponents] = useState<Opponent[] | null>(null);
+  const [listFailed, setListFailed] = useState(false);
   const [rounds, setRounds] = useState("9");
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+
+  useEffect(() => {
+    let live = true;
+    getOpponents(resolveApiBase(api)).then(
+      (list) => {
+        if (!live) return;
+        setOpponents(list);
+        if (list.length === 0) {
+          setListFailed(true);
+          setError("The service lists no opponents.");
+        } else setP2(list[0]!.spec);
+      },
+      (err) => {
+        if (!live) return;
+        setListFailed(true);
+        setError(formatCreateGameError(err));
+      },
+    );
+    return () => {
+      live = false;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const bots = (opponents ?? []).filter((o) => o.kind === "bot");
+  const agents = (opponents ?? []).filter((o) => o.kind !== "bot");
+  const canStart = !busy && !listFailed && !!opponents && opponents.length > 0;
 
   const start = async () => {
     const body = buildCreateBody(p1, p2, rounds, seed);
@@ -58,11 +93,23 @@ export function StartScreen({
                 onChange={(e) => set(e.target.value)}
                 className={field}
               >
-                {SEAT_KINDS.map((k) => (
-                  <option key={k} value={k}>
-                    {k}
-                  </option>
-                ))}
+                <option value="human">Human</option>
+                {(
+                  [
+                    ["Bots", bots],
+                    ["Trained agents", agents],
+                  ] as const
+                ).map(([name, list]) =>
+                  list.length ? (
+                    <optgroup key={name} label={name}>
+                      {list.map((o) => (
+                        <option key={o.spec} value={o.spec}>
+                          {o.label}
+                        </option>
+                      ))}
+                    </optgroup>
+                  ) : null,
+                )}
               </select>
             </label>
           ))}
@@ -80,7 +127,7 @@ export function StartScreen({
           </label>
           <button
             type="button"
-            disabled={busy}
+            disabled={!canStart}
             onClick={() => void start()}
             className="pixel-border bg-primary px-3 py-2 font-pixel text-[10px] text-primary-foreground disabled:opacity-40"
           >
