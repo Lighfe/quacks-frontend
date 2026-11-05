@@ -220,6 +220,42 @@ export async function createGame(baseUrl: string, body: CreateGameBody): Promise
   return String(data.game_id);
 }
 
+export interface Opponent {
+  spec: string;
+  label: string;
+  kind: string;
+}
+
+export async function getOpponents(baseUrl: string): Promise<Opponent[]> {
+  let res: Response;
+  try {
+    res = await fetch(`${baseUrl}/opponents`);
+  } catch {
+    throw new CreateGameError(baseUrl);
+  }
+  if (!res.ok) {
+    let detail: string | undefined;
+    try {
+      const data = (await res.json()) as { detail?: unknown } | null;
+      if (data && typeof data.detail === "string") detail = data.detail;
+    } catch {
+      detail = undefined;
+    }
+    throw new CreateGameError(baseUrl, res.status, detail);
+  }
+  let data: unknown;
+  try {
+    data = await res.json();
+  } catch {
+    throw new CreateGameError(baseUrl, res.status);
+  }
+  if (!Array.isArray(data)) throw new CreateGameError(baseUrl, res.status);
+  return data.filter(
+    (o): o is Opponent =>
+      !!o && typeof o.spec === "string" && typeof o.label === "string" && typeof o.kind === "string",
+  );
+}
+
 export function getView(backend: BackendConfig, seat: string): Promise<View> {
   if (backend.kind === "mock" && backend.mock === "game-over") return Promise.resolve(gameOverView);
   if (backend.kind === "mock" && backend.mock === "round-end") return Promise.resolve(roundEndState ? roundEndNextView : roundEndView);
